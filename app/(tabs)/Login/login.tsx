@@ -1,7 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
+import React, { useState } from "react"; // 1️⃣ Importăm useState
 import {
-  // 1️⃣ IMPORTĂM componentele necesare
   KeyboardAvoidingView,
   Platform,
   ScrollView,
@@ -11,19 +11,43 @@ import {
   View
 } from "react-native";
 
-// Asigură-te că fișierul styles.js este cel actualizat la pasul anterior
 import { COLORS, styles } from "./styles";
+
+// 2️⃣ Importăm componenta LoadingScreen
+// ⚠️ Asigură-te că calea este corectă (unde ai salvat fișierul LoadingScreen.js)
+import LoadingScreen from "../components/LoadingScreen";
 
 export default function LoginScreen() {
   const router = useRouter();
+  
+  // 3️⃣ Definim starea pentru încărcare
+  const [isLoading, setIsLoading] = useState(false);
 
+  // 4️⃣ Funcția care se activează la apăsarea butonului
+  const handleLogin = () => {
+    setIsLoading(true); // Pornim animația
+
+    // Simulăm o cerere către server (3 secunde)
+    setTimeout(() => {
+      setIsLoading(false); // Oprim animația
+      
+      // Aici ai naviga în mod normal către Home
+      // router.replace("/(tabs)"); 
+      console.log("Logare reușită!");
+    }, 3000);
+  };
+
+  // 5️⃣ Randare Condiționată: Dacă se încarcă, arătăm DOAR LoadingScreen
+  if (isLoading) {
+    return <LoadingScreen />;
+  }
+
+  // Altfel, arătăm ecranul normal de Login
   return (
-    // 2️⃣ WRAPPER PRINCIPAL: KeyboardAvoidingView
     <KeyboardAvoidingView
       behavior={Platform.OS === "ios" ? "padding" : "height"}
       style={styles.container}
     >
-      {/* 3️⃣ SCROLLVIEW: Permite derularea și centrarea conținutului */}
       <ScrollView
         contentContainerStyle={styles.scrollContainer}
         showsVerticalScrollIndicator={false}
@@ -60,8 +84,8 @@ export default function LoginScreen() {
           />
         </View>
 
-        {/* Button Login */}
-        <TouchableOpacity style={styles.loginButton}>
+        {/* Button Login - 6️⃣ Aici am adăugat onPress={handleLogin} */}
+        <TouchableOpacity style={styles.loginButton} onPress={handleLogin}>
           <Text style={styles.loginText}>Intră în aplicație</Text>
         </TouchableOpacity>
 
