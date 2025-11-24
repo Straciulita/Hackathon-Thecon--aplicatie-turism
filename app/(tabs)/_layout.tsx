@@ -1,18 +1,21 @@
 import { Tabs } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
-import { useTheme } from '../contexts/ThemeContext';
-// Importăm noua componentă animată (asigură-te că calea e corectă)
-import AnimatedThemeIcon from '../../components/AnimatedThemeIcon';
+import { useTheme } from '../contexts/ThemeContext'; 
 
 export default function TabLayout() {
   const { COLORS, isDark, theme, setTheme } = useTheme();
 
   const handleThemeToggle = () => {
-    // Logica ciclică: Light -> Dark -> System -> Light
     if (theme === 'light') setTheme('dark');
     else if (theme === 'dark') setTheme('system');
     else setTheme('light');
+  };
+
+  const getThemeIcon = () => {
+    if (theme === 'light') return 'sunny';
+    if (theme === 'dark') return 'moon';
+    return 'desktop';
   };
 
   return (
@@ -24,47 +27,36 @@ export default function TabLayout() {
           height: 60,
           paddingBottom: 8,
           paddingTop: 8,
-          elevation: 10, // Adăugăm puțină umbră pentru estetică
         },
         tabBarInactiveTintColor: COLORS.textLight,
         tabBarActiveTintColor: COLORS.primary, 
-        headerShown: false,
-        // Ascundem etichetele text pentru un aspect mai curat
-        tabBarShowLabel: false, 
+        headerShown: false, 
       }}
     >
-      {/* 1. Hartă (Stânga) */}
+      {/* 1. MODIFICAT: Harta se încarcă acum din 'map.tsx' */}
       <Tabs.Screen
-        name="index"
+        name="map" 
         options={{
           title: 'Hartă',
-          tabBarIcon: ({ color, focused }) => (
-            // Folosim iconița normală, poate puțin mai mare când e focusată
-            <Ionicons name={focused ? "map" : "map-outline"} size={28} color={color} />
-          ),
+          tabBarIcon: ({ color }) => <Ionicons name="map" size={24} color={color} />,
         }}
       />
       
-      {/* 2. Lista (Mijloc) */}
+      {/* 2. Lista */}
       <Tabs.Screen
         name="list"
         options={{
           title: 'Locații',
-          tabBarIcon: ({ color, focused }) => (
-             <Ionicons name={focused ? "list" : "list-outline"} size={30} color={color} />
-          ),
+          tabBarIcon: ({ color }) => <Ionicons name="list" size={28} color={color} />,
         }}
       />
       
-      {/* 3. Temă (Dreapta - Buton Activ Animat) */}
+      {/* 3. Temă */}
       <Tabs.Screen
         name="toggle-theme" 
         options={{
           title: 'Temă',
-          // AICI FOLOSIM COMPONENTA ANIMATĂ
-          tabBarIcon: ({ color }) => (
-            <AnimatedThemeIcon color={color} size={28} />
-          ),
+          tabBarIcon: ({ color }) => <Ionicons name={getThemeIcon() as any} size={24} color={color} />,
         }}
         listeners={() => ({
           tabPress: (e) => {
@@ -78,6 +70,9 @@ export default function TabLayout() {
       <Tabs.Screen name="explore" options={{ href: null }} />
       <Tabs.Screen name="profile" options={{ href: null }} />
       <Tabs.Screen name="theme-settings" options={{ href: null }} />
+      
+      {/* IMPORTANT: Ascundem și 'index' dacă a rămas vreun fișier rezidual */}
+      <Tabs.Screen name="index" options={{ href: null }} />
     </Tabs>
   );
 }
