@@ -3,7 +3,6 @@ import { useColorScheme } from 'react-native';
 
 type ThemeMode = 'light' | 'dark' | 'system';
 
-// EXPORTĂM COLORS_BASE pentru a fi folosit în StyleSheet.create din alte fișiere (fără a folosi hook-ul)
 export const COLORS_BASE = {
   primary: '#8B5A3C', // Maro închis
   secondary: '#C4956C', // Maro deschis/Bej
