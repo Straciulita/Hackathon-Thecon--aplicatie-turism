@@ -1,26 +1,28 @@
 import { Ionicons } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
 import {
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View
 } from "react-native";
 
 const COLORS = {
-  primary: "#6F4E37", // Coffee Brown
-  lightCoffee: "#DCC7B9",
+  primary: "#6F4E37",
   background: "#F7EFE5",
   white: "#FFFFFF",
 };
 
 export default function LoginScreen() {
+  const router = useRouter();
+
   return (
     <View style={styles.container}>
 
-      {/* 🔥 Icon principal – stil Tinder, dar cu cafea */}
+      {/* Icon */}
       <View style={styles.iconWrapper}>
-        <Ionicons name="cafe-outline" size={90} color={COLORS.primary} />
+        <Ionicons name="cafe-outline" size={70} color={COLORS.primary} />
       </View>
 
       <Text style={styles.mainTitle}>Explorează</Text>
@@ -36,7 +38,7 @@ export default function LoginScreen() {
         />
       </View>
 
-      {/* Parola */}
+      {/* Parolă */}
       <View style={styles.inputWrapper}>
         <Ionicons name="lock-closed-outline" size={22} color={COLORS.primary} />
         <TextInput
@@ -47,7 +49,7 @@ export default function LoginScreen() {
         />
       </View>
 
-      {/* Login Button */}
+      {/* Button Login */}
       <TouchableOpacity style={styles.loginButton}>
         <Text style={styles.loginText}>Intră în aplicație</Text>
       </TouchableOpacity>
@@ -59,7 +61,7 @@ export default function LoginScreen() {
       {/* Register */}
       <View style={styles.registerRow}>
         <Text style={styles.registerText}>Nu ai cont?</Text>
-        <TouchableOpacity>
+        <TouchableOpacity onPress={() => router.push("/Login/register")}>
           <Text style={styles.registerLink}>Creează unul</Text>
         </TouchableOpacity>
       </View>
@@ -77,20 +79,16 @@ const styles = StyleSheet.create({
   },
 
   iconWrapper: {
-    marginBottom: 30,
-    backgroundColor: "rgba(255,255,255,0.6)",
-    padding: 20,
+    marginBottom: 25,
+    backgroundColor: "rgba(255,255,255,0.5)",
+    padding: 18,
     borderRadius: 100,
-    borderColor: "rgba(0,0,0,0.1)",
+    borderColor: "rgba(0,0,0,0.05)",
     borderWidth: 1,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.1,
-    shadowRadius: 15,
   },
 
   mainTitle: {
-    fontSize: 34,
+    fontSize: 32,
     fontWeight: "bold",
     color: COLORS.primary,
     marginBottom: 5,
@@ -99,7 +97,7 @@ const styles = StyleSheet.create({
   subTitle: {
     fontSize: 16,
     color: "#7a6c65",
-    marginBottom: 40,
+    marginBottom: 35,
   },
 
   inputWrapper: {
@@ -113,7 +111,6 @@ const styles = StyleSheet.create({
     marginBottom: 15,
     borderWidth: 1,
     borderColor: "rgba(255,255,255,0.6)",
-    backdropFilter: "blur(12px)",
   },
 
   input: {
