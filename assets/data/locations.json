@@ -1,0 +1,222 @@
+[
+  {
+    "name": "The Literary Coffee House 'Citadel'",
+    "address": "Str. Academiei, Nr. 15, Bucharest",
+    "coordinates": {
+      "lat": 44.4363,
+      "long": 26.1018
+    },
+    "image_url": "https://images.unsplash.com/photo-1435224654926-ecc9f7fa028c",
+    "short_description": "A quiet place, ideal for reading and study sessions. Excellent espresso.",
+    "rating": 4.8
+  },
+  {
+    "name": "Restaurant 'The Old Inn'",
+    "address": "Piața Unirii, Nr. 4, Cluj-Napoca",
+    "coordinates": {
+      "lat": 46.7709,
+      "long": 23.5891
+    },
+    "image_url": "https://images.unsplash.com/photo-1441974231531-c6227db76b6e",
+    "short_description": "Traditional Romanian dishes, generous servings, and live folk music.",
+    "rating": 4.5
+  },
+  {
+    "name": "The Global Wok Bistro",
+    "address": "Bulevardul Eroilor, Nr. 8, Timișoara",
+    "coordinates": {
+      "lat": 45.7537,
+      "long": 21.2257
+    },
+    "image_url": "https://images.unsplash.com/photo-1505483531331-fc3cf89fd382",
+    "short_description": "Fast and tasty Asian food, a favorite among Polytechnic students.",
+    "rating": 4.2
+  },
+  {
+    "name": "Café 'New World'",
+    "address": "Str. Lăpușneanu, Nr. 12, Iași",
+    "coordinates": {
+      "lat": 47.1601,
+      "long": 27.5794
+    },
+    "image_url": "https://images.unsplash.com/photo-1437622368342-7a3d73a34c8f",
+    "short_description": "Modern design, perfect for a relaxed brunch. They have the best cakes.",
+    "rating": 4.7
+  },
+  {
+    "name": "Pizzeria 'Il Drago'",
+    "address": "Str. Nicolae Bălcescu, Nr. 20, Brașov",
+    "coordinates": {
+      "lat": 45.6429,
+      "long": 25.5888
+    },
+    "image_url": "https://images.unsplash.com/photo-1469474968028-56623f02e42e",
+    "short_description": "Wood-fired oven pizza, authentic Italian ingredients. Excellent for groups.",
+    "rating": 4.6
+  },
+  {
+    "name": "Vegan Restaurant 'The Green Garden'",
+    "address": "Splaiul Independenței, Nr. 300, Bucharest",
+    "coordinates": {
+      "lat": 44.4379,
+      "long": 26.0463
+    },
+    "image_url": "https://images.unsplash.com/photo-1507525428034-b723cf961d3e",
+    "short_description": "Healthy, plant-based options. Fresh smoothies and delicious cream soups.",
+    "rating": 4.9
+  },
+  {
+    "name": "Coffee Shop 'By The Faculty'",
+    "address": "Str. Observatorului, Nr. 17, Cluj-Napoca",
+    "coordinates": {
+      "lat": 46.757,
+      "long": 23.5786
+    },
+    "image_url": "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee",
+    "short_description": "Strategic location near the campus. Quick and affordable student lunch menu.",
+    "rating": 4
+  },
+  {
+    "name": "Burger Shack",
+    "address": "Calea Moșilor, Nr. 250, Bucharest",
+    "coordinates": {
+      "lat": 44.4449,
+      "long": 26.1103
+    },
+    "image_url": "https://images.unsplash.com/photo-1501785888041-af3ef285b470",
+    "short_description": "The best artisanal burgers in town, featuring Black Angus beef.",
+    "rating": 4.4
+  },
+  {
+    "name": "Tea House 'Sunset'",
+    "address": "Str. George Enescu, Nr. 3, Sibiu",
+    "coordinates": {
+      "lat": 45.7958,
+      "long": 24.1528
+    },
+    "image_url": "https://images.unsplash.com/photo-1470770841072-f978cf4d019e",
+    "short_description": "An oasis of calm with over 50 types of tea and ambient music.",
+    "rating": 4.7
+  },
+  {
+    "name": "Restaurant Pescaresc 'The Sea'",
+    "address": "Bulevardul Mamaia, Nr. 200, Constanța",
+    "coordinates": {
+      "lat": 44.1751,
+      "long": 28.6367
+    },
+    "image_url": "https://images.unsplash.com/photo-1469474968028-56623f02e42e",
+    "short_description": "Fresh fish and seafood specialties, with a view of the sea.",
+    "rating": 4.5
+  },
+  {
+    "name": "Bistro 'At The Forest'",
+    "address": "Aleea Parcului, Nr. 7, Oradea",
+    "coordinates": {
+      "lat": 47.0506,
+      "long": 21.9161
+    },
+    "image_url": "https://images.unsplash.com/photo-1465101162946-4377e57745c3",
+    "short_description": "International menu, green terrace. Ideal for a romantic dinner.",
+    "rating": 4.3
+  },
+  {
+    "name": "Gaming Coffee Shop 'Restart'",
+    "address": "Strada Vasile Alecsandri, Nr. 5, Galați",
+    "coordinates": {
+      "lat": 45.4385,
+      "long": 28.0559
+    },
+    "image_url": "https://images.unsplash.com/photo-1500534623283-312aade485b7",
+    "short_description": "Board games, consoles, and coffee. An excellent place for socializing.",
+    "rating": 4.1
+  },
+  {
+    "name": "Trattoria 'Bella Vita'",
+    "address": "Bulevardul Carol I, Nr. 18, Craiova",
+    "coordinates": {
+      "lat": 44.3297,
+      "long": 23.8
+    },
+    "image_url": "https://images.unsplash.com/photo-1462331940025-496dfbfc7564",
+    "short_description": "Homemade pasta and Italian wines. Mediterranean atmosphere.",
+    "rating": 4.6
+  },
+  {
+    "name": "Bread and Coffee",
+    "address": "Strada Republicii, Nr. 10, Ploiești",
+    "coordinates": {
+      "lat": 44.945,
+      "long": 26.0315
+    },
+    "image_url": "https://images.unsplash.com/photo-1435224654926-ecc9f7fa028c",
+    "short_description": "Artisanal bakery with specialty coffees. Ideal for breakfast.",
+    "rating": 4.8
+  },
+  {
+    "name": "Fast-Food 'Döner King'",
+    "address": "Calea Șagului, Nr. 55, Timișoara",
+    "coordinates": {
+      "lat": 45.7275,
+      "long": 21.2188
+    },
+    "image_url": "https://images.unsplash.com/photo-1441974231531-c6227db76b6e",
+    "short_description": "Döner Kebab and Shawarma. Quick and filling option after classes.",
+    "rating": 3.9
+  },
+  {
+    "name": "Restaurant 'The Citadel'",
+    "address": "Strada Mureșenilor, Nr. 1, Târgu Mureș",
+    "coordinates": {
+      "lat": 46.5459,
+      "long": 24.5623
+    },
+    "image_url": "https://images.unsplash.com/photo-1505483531331-fc3cf89fd382",
+    "short_description": "Traditional Transylvanian food, next to the Medieval Citadel.",
+    "rating": 4.4
+  },
+  {
+    "name": "Smoothie Bar 'Energy'",
+    "address": "Bulevardul 1 Decembrie 1918, Nr. 100, Alba Iulia",
+    "coordinates": {
+      "lat": 46.0683,
+      "long": 23.5855
+    },
+    "image_url": "https://images.unsplash.com/photo-1437622368342-7a3d73a34c8f",
+    "short_description": "Smoothies, natural juices, and acai bowls for an energy boost.",
+    "rating": 4.9
+  },
+  {
+    "name": "Restaurant 'Grandma's House'",
+    "address": "Strada Republicii, Nr. 45, Brașov",
+    "coordinates": {
+      "lat": 45.6425,
+      "long": 25.588
+    },
+    "image_url": "https://images.unsplash.com/photo-1469474968028-56623f02e42e",
+    "short_description": "Fixed (lunch) menu, cheap and tasty, just like home.",
+    "rating": 4.3
+  },
+  {
+    "name": "Irish Pub 'The Shamrock'",
+    "address": "Strada Universității, Nr. 9, Iași",
+    "coordinates": {
+      "lat": 47.1633,
+      "long": 27.579
+    },
+    "image_url": "https://images.unsplash.com/photo-1507525428034-b723cf961d3e",
+    "short_description": "Craft beer, quiz nights, and live sports. Popular student spot.",
+    "rating": 4.5
+  },
+  {
+    "name": "Coffee Shop 'Zen'",
+    "address": "Strada Dorobanților, Nr. 80, Cluj-Napoca",
+    "coordinates": {
+      "lat": 46.777,
+      "long": 23.6067
+    },
+    "image_url": "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee",
+    "short_description": "Minimalist design, specialty coffee, and relaxing background music.",
+    "rating": 4.7
+  }
+]
