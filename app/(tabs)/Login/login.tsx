@@ -1,162 +1,83 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import {
-  StyleSheet,
+  // 1️⃣ IMPORTĂM componentele necesare
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
   Text,
   TextInput,
   TouchableOpacity,
   View
 } from "react-native";
 
-const COLORS = {
-  primary: "#6F4E37",
-  background: "#F7EFE5",
-  white: "#FFFFFF",
-};
+// Asigură-te că fișierul styles.js este cel actualizat la pasul anterior
+import { COLORS, styles } from "./styles";
 
 export default function LoginScreen() {
   const router = useRouter();
 
   return (
-    <View style={styles.container}>
+    // 2️⃣ WRAPPER PRINCIPAL: KeyboardAvoidingView
+    <KeyboardAvoidingView
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      style={styles.container}
+    >
+      {/* 3️⃣ SCROLLVIEW: Permite derularea și centrarea conținutului */}
+      <ScrollView
+        contentContainerStyle={styles.scrollContainer}
+        showsVerticalScrollIndicator={false}
+      >
 
-      {/* Icon */}
-      <View style={styles.iconWrapper}>
-        <Ionicons name="cafe-outline" size={70} color={COLORS.primary} />
-      </View>
+        {/* Icon */}
+        <View style={styles.iconWrapper}>
+          <Ionicons name="cafe-outline" size={70} color={COLORS.primary} />
+        </View>
 
-      <Text style={styles.mainTitle}>Explorează</Text>
-      <Text style={styles.subTitle}>Găsește locuri pe gustul tău ☕️</Text>
+        <Text style={styles.mainTitle}>Explorează</Text>
+        <Text style={styles.subTitle}>Găsește locuri pe gustul tău ☕️</Text>
 
-      {/* Email */}
-      <View style={styles.inputWrapper}>
-        <Ionicons name="mail-outline" size={22} color={COLORS.primary} />
-        <TextInput
-          placeholder="Email"
-          placeholderTextColor="#7a6c65"
-          style={styles.input}
-        />
-      </View>
+        {/* Email */}
+        <View style={styles.inputWrapper}>
+          <Ionicons name="mail-outline" size={22} color={COLORS.primary} />
+          <TextInput
+            placeholder="Email"
+            placeholderTextColor={COLORS.textSecondary}
+            style={styles.input}
+            keyboardType="email-address"
+            autoCapitalize="none"
+          />
+        </View>
 
-      {/* Parolă */}
-      <View style={styles.inputWrapper}>
-        <Ionicons name="lock-closed-outline" size={22} color={COLORS.primary} />
-        <TextInput
-          placeholder="Parolă"
-          placeholderTextColor="#7a6c65"
-          secureTextEntry
-          style={styles.input}
-        />
-      </View>
+        {/* Parolă */}
+        <View style={styles.inputWrapper}>
+          <Ionicons name="lock-closed-outline" size={22} color={COLORS.primary} />
+          <TextInput
+            placeholder="Parolă"
+            placeholderTextColor={COLORS.textSecondary}
+            secureTextEntry
+            style={styles.input}
+          />
+        </View>
 
-      {/* Button Login */}
-      <TouchableOpacity style={styles.loginButton}>
-        <Text style={styles.loginText}>Intră în aplicație</Text>
-      </TouchableOpacity>
-
-      <TouchableOpacity>
-        <Text style={styles.forgotPassword}>Ai uitat parola?</Text>
-      </TouchableOpacity>
-
-      {/* Register */}
-      <View style={styles.registerRow}>
-        <Text style={styles.registerText}>Nu ai cont?</Text>
-        <TouchableOpacity onPress={() => router.push("/Login/register")}>
-          <Text style={styles.registerLink}>Creează unul</Text>
+        {/* Button Login */}
+        <TouchableOpacity style={styles.loginButton}>
+          <Text style={styles.loginText}>Intră în aplicație</Text>
         </TouchableOpacity>
-      </View>
-    </View>
+
+        <TouchableOpacity>
+          <Text style={styles.forgotPassword}>Ai uitat parola?</Text>
+        </TouchableOpacity>
+
+        {/* Register */}
+        <View style={styles.registerRow}>
+          <Text style={styles.registerText}>Nu ai cont?</Text>
+          <TouchableOpacity onPress={() => router.push("/Login/register")}>
+            <Text style={styles.registerLink}>Creează unul</Text>
+          </TouchableOpacity>
+        </View>
+
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: COLORS.background,
-    alignItems: "center",
-    justifyContent: "center",
-    paddingHorizontal: 30,
-  },
-
-  iconWrapper: {
-    marginBottom: 25,
-    backgroundColor: "rgba(255,255,255,0.5)",
-    padding: 18,
-    borderRadius: 100,
-    borderColor: "rgba(0,0,0,0.05)",
-    borderWidth: 1,
-  },
-
-  mainTitle: {
-    fontSize: 32,
-    fontWeight: "bold",
-    color: COLORS.primary,
-    marginBottom: 5,
-  },
-
-  subTitle: {
-    fontSize: 16,
-    color: "#7a6c65",
-    marginBottom: 35,
-  },
-
-  inputWrapper: {
-    width: "100%",
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "rgba(255,255,255,0.35)",
-    borderRadius: 15,
-    paddingHorizontal: 15,
-    paddingVertical: 12,
-    marginBottom: 15,
-    borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.6)",
-  },
-
-  input: {
-    flex: 1,
-    marginLeft: 10,
-    color: COLORS.primary,
-    fontSize: 16,
-  },
-
-  loginButton: {
-    backgroundColor: COLORS.primary,
-    width: "100%",
-    paddingVertical: 15,
-    borderRadius: 15,
-    alignItems: "center",
-    marginTop: 20,
-    marginBottom: 10,
-  },
-
-  loginText: {
-    color: COLORS.white,
-    fontSize: 18,
-    fontWeight: "bold",
-  },
-
-  forgotPassword: {
-    marginTop: 10,
-    color: COLORS.primary,
-    fontSize: 14,
-  },
-
-  registerRow: {
-    flexDirection: "row",
-    marginTop: 35,
-  },
-
-  registerText: {
-    fontSize: 16,
-    color: "#7a6c65",
-  },
-
-  registerLink: {
-    marginLeft: 5,
-    fontSize: 16,
-    fontWeight: "bold",
-    color: COLORS.primary,
-    textDecorationLine: "underline",
-  },
-});

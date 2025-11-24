@@ -1,75 +1,101 @@
-import { MaterialCommunityIcons } from "@expo/vector-icons";
-import { StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
+import {
+  // 1️⃣ IMPORTĂM componentele necesare pentru responsivitate
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View
+} from "react-native";
+
+import { COLORS, styles } from "./styles";
 
 export default function RegisterScreen() {
+  const router = useRouter();
+
   return (
-    <View style={styles.container}>
-      {/* Icon mai mic */}
-      <MaterialCommunityIcons name="coffee" size={64} color="#8B4513" style={styles.icon} />
+    // 2️⃣ WRAPPER PRINCIPAL: KeyboardAvoidingView
+    // Acesta ridică ecranul când apare tastatura pe iOS
+    <KeyboardAvoidingView
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      style={styles.container}
+    >
+      {/* 3️⃣ SCROLLVIEW: Permite derularea pe ecrane mici */}
+      <ScrollView
+        contentContainerStyle={styles.scrollContainer}
+        showsVerticalScrollIndicator={false}
+      >
 
-      <Text style={styles.title}>Creează un cont nou</Text>
+        {/* Icon header */}
+        <View style={styles.iconWrapper}>
+          {/* 4️⃣ MODIFICAT: Am schimbat size de la 70 la 50 */}
+          <Ionicons name="person-add-outline" size={50} color={COLORS.primary} />
+        </View>
 
-      {/* Input-uri */}
-      <TextInput style={styles.input} placeholder="Nume complet" placeholderTextColor="#999" />
-      <TextInput style={styles.input} placeholder="Email" placeholderTextColor="#999" />
-      <TextInput style={styles.input} placeholder="Parolă" secureTextEntry placeholderTextColor="#999" />
-      <TextInput style={styles.input} placeholder="Confirmă parola" secureTextEntry placeholderTextColor="#999" />
+        <Text style={styles.mainTitle}>Cont Nou</Text>
+        <Text style={styles.subTitle}>Alătură-te comunității noastre ☕️</Text>
 
-      {/* Buton în stil Tinder */}
-      <TouchableOpacity style={styles.button}>
-        <Text style={styles.buttonText}>Creează cont</Text>
-      </TouchableOpacity>
+        {/* Input: Nume Complet */}
+        <View style={styles.inputWrapper}>
+          <Ionicons name="person-outline" size={22} color={COLORS.primary} />
+          <TextInput 
+            placeholder="Nume complet" 
+            placeholderTextColor={COLORS.textSecondary} 
+            style={styles.input} 
+          />
+        </View>
 
-      <TouchableOpacity>
-        <Text style={styles.link}>Ai deja cont? Autentifică-te</Text>
-      </TouchableOpacity>
-    </View>
+        {/* Input: Email */}
+        <View style={styles.inputWrapper}>
+          <Ionicons name="mail-outline" size={22} color={COLORS.primary} />
+          <TextInput 
+            placeholder="Email" 
+            placeholderTextColor={COLORS.textSecondary} 
+            style={styles.input} 
+            keyboardType="email-address"
+            autoCapitalize="none"
+          />
+        </View>
+
+        {/* Input: Parolă */}
+        <View style={styles.inputWrapper}>
+          <Ionicons name="lock-closed-outline" size={22} color={COLORS.primary} />
+          <TextInput 
+            placeholder="Parolă" 
+            placeholderTextColor={COLORS.textSecondary} 
+            secureTextEntry 
+            style={styles.input} 
+          />
+        </View>
+
+        {/* Input: Confirmă Parola */}
+        <View style={styles.inputWrapper}>
+          <Ionicons name="shield-checkmark-outline" size={22} color={COLORS.primary} />
+          <TextInput 
+            placeholder="Confirmă parola" 
+            placeholderTextColor={COLORS.textSecondary} 
+            secureTextEntry 
+            style={styles.input} 
+          />
+        </View>
+
+        {/* Buton Creează Cont */}
+        <TouchableOpacity style={styles.loginButton}>
+          <Text style={styles.loginText}>Creează cont</Text>
+        </TouchableOpacity>
+
+        {/* Link către Login */}
+        <View style={styles.registerRow}>
+          <Text style={styles.registerText}>Ai deja cont?</Text>
+          <TouchableOpacity onPress={() => router.back()}>
+            <Text style={styles.registerLink}>Autentifică-te</Text>
+          </TouchableOpacity>
+        </View>
+
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    padding: 20,
-    backgroundColor: "#FFF8F0",
-  },
-  icon: {
-    marginBottom: 10,
-  },
-  title: {
-    fontSize: 26,
-    fontWeight: "bold",
-    color: "#5A3825",
-    marginBottom: 20,
-  },
-  input: {
-    width: "100%",
-    backgroundColor: "white",
-    padding: 12,
-    borderRadius: 12,
-    marginBottom: 12,
-    borderWidth: 1,
-    borderColor: "#E6D5C3",
-  },
-  button: {
-    backgroundColor: "#8B4513",
-    paddingVertical: 14,
-    borderRadius: 16,
-    width: "100%",
-    alignItems: "center",
-    marginTop: 10,
-    marginBottom: 15,
-  },
-  buttonText: {
-    color: "white",
-    fontSize: 18,
-    fontWeight: "600",
-  },
-  link: {
-    color: "#8B4513",
-    fontSize: 16,
-    marginTop: 8,
-  },
-});
