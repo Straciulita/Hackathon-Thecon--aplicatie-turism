@@ -107,4 +107,137 @@ export const styles = StyleSheet.create({
     color: COLORS.primary,
     textDecorationLine: "underline",
   },
+
+  // ... stilurile vechi rămân neschimbate ...
+
+  // 🆕 STILURI PENTRU PROFIL
+  profileHeader: {
+    alignItems: 'center',
+    marginBottom: 30,
+    marginTop: 20,
+  },
+  avatarContainer: {
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 5 },
+    shadowOpacity: 0.2,
+    shadowRadius: 10,
+    elevation: 5,
+  },
+  avatar: {
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    borderWidth: 4,
+    borderColor: COLORS.white,
+  },
+  userName: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: COLORS.primary,
+    marginTop: 15,
+  },
+  userEmail: {
+    fontSize: 14,
+    color: COLORS.textSecondary,
+    marginBottom: 5,
+  },
+  
+  // Carduri pentru secțiuni
+  sectionCard: {
+    backgroundColor: COLORS.white,
+    borderRadius: 20,
+    padding: 20,
+    marginBottom: 20,
+    width: '100%',
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 2,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: COLORS.primary,
+    marginBottom: 15,
+  },
+  
+  // Input-uri mici pentru profil
+  bioInput: {
+    backgroundColor: COLORS.inputBackground,
+    borderRadius: 12,
+    padding: 12,
+    color: COLORS.primary,
+    fontSize: 15,
+    minHeight: 60, // Mai înalt pentru descriere
+    textAlignVertical: 'top',
+  },
+  rowInput: {
+    backgroundColor: COLORS.inputBackground,
+    borderRadius: 12,
+    padding: 12,
+    color: COLORS.primary,
+    fontSize: 15,
+  },
+
+  // Butoane de preferințe (Chips)
+  preferenceRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 15,
+  },
+  chip: {
+    flex: 1,
+    paddingVertical: 10,
+    borderRadius: 25,
+    borderWidth: 1,
+    borderColor: COLORS.primary,
+    alignItems: 'center',
+    marginHorizontal: 5,
+  },
+  activeChip: {
+    backgroundColor: COLORS.primary,
+  },
+  chipText: {
+    color: COLORS.primary,
+    fontWeight: '600',
+  },
+  activeChipText: {
+    color: COLORS.white,
+  },
+
+  // Culori
+  colorRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    marginTop: 10,
+  },
+  colorCircle: {
+    width: 35,
+    height: 35,
+    borderRadius: 20,
+    borderWidth: 2,
+    borderColor: 'transparent',
+  },
+  activeColorCircle: {
+    borderColor: COLORS.primary,
+    transform: [{ scale: 1.2 }],
+  },
+
+  logoutButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#FF6B6B', // Roșu deschis pentru logout
+    padding: 15,
+    borderRadius: 15,
+    marginTop: 10,
+    marginBottom: 40,
+  },
+  logoutText: {
+    color: 'white',
+    fontWeight: 'bold',
+    fontSize: 16,
+    marginLeft: 10,
+  },
 });
