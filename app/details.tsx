@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import {
   View,
   Text,
@@ -9,156 +9,190 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   Linking,
+  Alert
 } from 'react-native';
-// Tipul RouteProp este necesar doar dacă tipăm opțiunile direct, dar e bine să îl importăm
-import { Stack, useLocalSearchParams, useRouter } from 'expo-router'; 
+
+import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 
-// CORECȚIE 1: Calea de import
-// app/details.tsx (un nivel în sus) -> contexts/ThemeContext.tsx
-import { useTheme, COLORS_BASE } from './contexts/ThemeContext'; 
+import { GoogleGenerativeAI } from "@google/generative-ai";
 
-// Funcție simpulată pentru apelul API AI (pentru a avea Loading Indicator)
-const simulateAIApiCall = (name: string, description: string) => {
-  return new Promise<string>((resolve) => {
-    // Simulează o întârziere de 2 secunde (pentru a testa Loading Indicator)
-    setTimeout(() => {
-      resolve(`**Vibe Generat de AI**: ${name} nu este doar un loc, este o experiență boemă. Locația îmbină farmecul tradițional cu o estetică modernă. Perfect pentru o evadare relaxantă, oferind experiențe culinare unice. (Descriere originală: "${description}")`);
-    }, 2000);
-  });
-};
+import { useTheme, COLORS_BASE } from './contexts/ThemeContext';
+import { useLocations } from './contexts/LocationContext';
+
+// 🔥 API KEY — IMPORTANT: pentru hackathon e OK să fie aici
+const GEMINI_API_KEY = "AIzaSyBvo0FEo61D-J00T2bdFb6EmunkpU0Qt88";
+
+const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
 
 export default function DetailsScreen() {
   const { COLORS, isDark } = useTheme();
   const router = useRouter();
-  
-  // Preluare parametri
-  const params = useLocalSearchParams();
-  
-  // CORECȚIE 2: Asigură-te că valoarea este un string (chiar dacă este trimisă ca string)
-  // Dacă Expo Router detectează că valoarea ar putea fi o matrice, trebuie să forțezi tipul string.
-  const locationName = Array.isArray(params.name) ? params.name[0] : (params.name || 'Detalii');
-  const locationAddress = Array.isArray(params.address) ? params.address[0] : (params.address || '');
-  const locationImageUrl = Array.isArray(params.imageUrl) ? params.imageUrl[0] : (params.imageUrl || 'https://via.placeholder.com/600x400?text=No+Image');
-  const initialDescription = Array.isArray(params.description) ? params.description[0] : (params.description || 'Descriere lipsă.');
-  const locationRating = Array.isArray(params.rating) ? params.rating[0] : (params.rating || 'N/A');
+  const { locationId } = useLocalSearchParams();
+  const { locations } = useLocations();
 
-  const [currentDescription, setCurrentDescription] = useState(initialDescription as string);
+  const selectedLocation = locations.find(loc => loc.id.toString() === locationId);
+
+  const [currentDescription, setCurrentDescription] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [isVibeGenerated, setIsVibeGenerated] = useState(false);
 
-  // Funcţia "Al Magic"
+  // --------------------------------------------------
+  // Load description
+  // --------------------------------------------------
+  useEffect(() => {
+    if (selectedLocation) {
+      setCurrentDescription(selectedLocation.short_description || "Descriere indisponibilă.");
+    }
+  }, [selectedLocation]);
+
+  // --------------------------------------------------
+  // AI / Gemini – Generate Vibe
+  // --------------------------------------------------
   const generateVibeDescription = useCallback(async () => {
-    if (isLoading) return;
+    if (isLoading || !selectedLocation) return;
 
-    setIsLoading(true); // Cerința 1: Loading Indicator
+    setIsLoading(true);
 
     try {
-      // AICI AR VENI APELUL REAL LA API AI
-      const vibeText = await simulateAIApiCall(locationName as string, initialDescription as string);
-      
-      setCurrentDescription(vibeText); // Cerința 2: Update-ul descrierii
-    } catch (error) {
-      console.error("AI Generation Error:", error);
-      setCurrentDescription("Ne pare rău, AI-ul nu a putut genera o descriere. E posibil să nu fie configurat.");
+      const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash-latest" });
+
+      const prompt = `
+        Ești un ghid turistic local super friendly .
+        Generează o descriere vibe-check scurtă pentru locul "${selectedLocation.name}".
+        Descriere oficială: "${selectedLocation.short_description}".
+        Adresă: "${selectedLocation.address}".
+        În stil Gen Z/Millennials, 3-4 propoziții MAX, în română, cu emoji-uri.
+      `;
+
+      const result = await model.generateContent(prompt);
+      const aiText = result.response.text();
+
+      setCurrentDescription(aiText);
+      setIsVibeGenerated(true);
+
+    } catch (err) {
+      console.error("AI Error:", err);
+      Alert.alert("Eroare AI", "Nu am putut genera vibe-ul. Verifică conexiunea sau cheia API.");
     } finally {
       setIsLoading(false);
     }
-  }, [locationName, initialDescription, isLoading]);
 
-  // Funcția "Rezervă" (link personalizat către WhatsApp)
+  }, [selectedLocation, isLoading]);
+
+  // --------------------------------------------------
+  // WhatsApp Reservation
+  // --------------------------------------------------
   const handleReserve = () => {
-    const whatsappUrl = `whatsapp://send?text=Aș dori să fac o rezervare la ${locationName} la adresa ${locationAddress}.`;
-    Linking.openURL(whatsappUrl).catch(() => {
-      alert('Vă rugăm să instalați WhatsApp pentru a continua.');
+    if (!selectedLocation) return;
+
+    const url = `whatsapp://send?text=Salut! Aș vrea să fac o rezervare la ${selectedLocation.name}.`;
+    Linking.openURL(url).catch(() => {
+      Alert.alert("Eroare", "Nu pot deschide WhatsApp.");
     });
   };
 
-  // Configurare Header adaptată la temă
+  // --------------------------------------------------
+  // Navigation Header
+  // --------------------------------------------------
   const headerStyle = {
     headerShown: true,
-    // CORECȚIE 2: Ne asigurăm că titlul este un string
-    title: locationName, 
-    headerStyle: { backgroundColor: isDark ? COLORS.darkBackground : COLORS.white },
+    title: selectedLocation?.name || "Detalii",
+    headerStyle: { backgroundColor: COLORS.background },
     headerTintColor: COLORS.primary,
     headerShadowVisible: false,
     headerLeft: () => (
-      // Buton de închidere pentru modal
       <TouchableOpacity onPress={() => router.back()} style={{ marginLeft: 10 }}>
-        <Ionicons name="close" size={28} color={COLORS.primary} />
+        <Ionicons name="chevron-back" size={28} color={COLORS.primary} />
       </TouchableOpacity>
-    ),
+    )
   };
 
-  if (!locationName) {
+  // --------------------------------------------------
+  // Loading State (location not ready)
+  // --------------------------------------------------
+  if (!selectedLocation) {
     return (
       <SafeAreaView style={[styles.container, { backgroundColor: COLORS.background }]}>
         <Stack.Screen options={headerStyle} />
-        <Text style={{ color: COLORS.textPrimary, textAlign: 'center', marginTop: 50 }}>Locație negăsită.</Text>
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+          <ActivityIndicator size="large" color={COLORS.primary} />
+        </View>
       </SafeAreaView>
     );
   }
 
+  // --------------------------------------------------
+  // MAIN RENDER
+  // --------------------------------------------------
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: COLORS.background }]}>
-      <Stack.Screen options={headerStyle as any} /> 
-      
+      <Stack.Screen options={headerStyle} />
+
       <ScrollView contentContainerStyle={styles.scrollContent}>
-        
-        {/* Poză mare */}
-        <Image 
-          source={{ uri: locationImageUrl }} 
-          style={styles.mainImage} 
+
+        {/* MAIN IMAGE */}
+        <Image
+          source={{ uri: selectedLocation.image_url }}
+          style={styles.mainImage}
           resizeMode="cover"
         />
 
         <View style={styles.contentPadding}>
-          
-          {/* Titlu și Rating */}
-          <View style={styles.titleRatingRow}>
-            <Text style={[styles.locationTitle, { color: COLORS.textPrimary }]}>{locationName}</Text>
+
+          {/* Title + Rating */}
+          <View style={styles.titleRow}>
+            <Text style={[styles.locationTitle, { color: COLORS.textPrimary }]}>
+              {selectedLocation.name}
+            </Text>
+
             <View style={styles.ratingContainer}>
               <Ionicons name="star" size={20} color="#FFB800" />
-              <Text style={[styles.ratingText, { color: COLORS.textPrimary }]}>{locationRating}</Text>
+              <Text style={styles.ratingText}>{selectedLocation.rating}</Text>
             </View>
           </View>
 
-          {/* Adresă */}
-          <Text style={styles.locationAddress}>{locationAddress}</Text>
+          {/* Address */}
+          <Text style={[styles.addressText, { color: COLORS_BASE.textLight }]}>
+            <Ionicons name="location-outline" size={14} color={COLORS_BASE.textLight} /> {selectedLocation.address}
+          </Text>
 
-          {/* Descriere Inițială/Actualizată */}
+          {/* Description */}
           <View style={styles.descriptionSection}>
             <Text style={[styles.descriptionHeader, { color: COLORS.primary }]}>
-              Descriere
+              {isVibeGenerated ? "✨ Vibe Generat de AI" : "Descriere"}
             </Text>
+
             <Text style={[styles.descriptionText, { color: COLORS.textPrimary }]}>
               {currentDescription}
             </Text>
           </View>
 
-          {/* Funcţia Al Generative (Baza Notei) */}
-          <TouchableOpacity
-            style={[styles.aiButton, { backgroundColor: isLoading ? COLORS.secondary : COLORS.primary }]}
-            onPress={generateVibeDescription}
-            disabled={isLoading}
-          >
-            {isLoading ? (
-              <ActivityIndicator size="small" color={COLORS.white} />
-            ) : (
-              <Text style={styles.aiButtonText}>
-                Generează Descriere Vibe ✨
-              </Text>
-            )}
-          </TouchableOpacity>
-          
-          {/* Buton "Rezervă" (WhatsApp) */}
+          {/* AI Button */}
+          {!isVibeGenerated && (
+            <TouchableOpacity
+              style={[styles.aiButton, { backgroundColor: COLORS.primary }]}
+              onPress={generateVibeDescription}
+              disabled={isLoading}
+            >
+              {isLoading ? (
+                <ActivityIndicator size="small" color={COLORS.white} />
+              ) : (
+                <>
+                  <Ionicons name="sparkles" size={20} color={COLORS.white} style={{ marginRight: 8 }} />
+                  <Text style={styles.aiButtonText}>Generează Vibe Check ✨</Text>
+                </>
+              )}
+            </TouchableOpacity>
+          )}
+
+          {/* WhatsApp Button */}
           <TouchableOpacity
             style={[styles.reserveButton, { borderColor: COLORS.primary }]}
             onPress={handleReserve}
           >
-            <Ionicons name="logo-whatsapp" size={20} color="#25D366" />
-            <Text style={[styles.reserveButtonText, { color: COLORS.primary }]}>
-              Rezervă (WhatsApp)
-            </Text>
+            <Ionicons name="logo-whatsapp" size={22} color="#25D366" />
+            <Text style={[styles.reserveButtonText, { color: COLORS.primary }]}>Rezervă pe WhatsApp</Text>
           </TouchableOpacity>
 
         </View>
@@ -167,91 +201,59 @@ export default function DetailsScreen() {
   );
 }
 
+// --------------------------------------------------
+// STYLES
+// --------------------------------------------------
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  scrollContent: {
-    paddingBottom: 40,
-  },
+  container: { flex: 1 },
+  scrollContent: { paddingBottom: 40 },
   mainImage: {
-    width: '100%',
-    height: 250,
+    width: "100%",
+    height: 280,
     backgroundColor: COLORS_BASE.secondary,
   },
   contentPadding: {
     paddingHorizontal: 20,
-    marginTop: 20,
+    marginTop: 25
   },
-  titleRatingRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 8,
+  titleRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 8
   },
-  locationTitle: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    flex: 1,
-    paddingRight: 10,
-  },
+  locationTitle: { fontSize: 26, fontWeight: "800", flex: 1, paddingRight: 10 },
   ratingContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    backgroundColor: "rgba(255,184,0,0.15)",
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 10
   },
-  ratingText: {
-    marginLeft: 5,
-    fontSize: 20,
-    fontWeight: '600',
-  },
-  locationAddress: {
-    fontSize: 16,
-    color: COLORS_BASE.textLight,
-    marginBottom: 20,
-  },
-  descriptionSection: {
-    marginTop: 10,
-  },
-  descriptionHeader: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 8,
-  },
-  descriptionText: {
-    fontSize: 16,
-    lineHeight: 24,
-  },
+  ratingText: { marginLeft: 4, fontSize: 16, fontWeight: "700", color: "#D49500" },
+  addressText: { fontSize: 15, marginBottom: 25 },
+  descriptionSection: { marginBottom: 10 },
+  descriptionHeader: { fontSize: 18, fontWeight: "bold", marginBottom: 10 },
+  descriptionText: { fontSize: 16, lineHeight: 26 },
+
   aiButton: {
     marginTop: 30,
-    padding: 15,
-    borderRadius: 10,
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 5,
-    elevation: 3,
+    paddingVertical: 16,
+    borderRadius: 16,
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center"
   },
-  aiButtonText: {
-    color: COLORS_BASE.white,
-    fontSize: 18,
-    fontWeight: 'bold',
-  },
+  aiButtonText: { color: COLORS_BASE.white, fontSize: 16, fontWeight: "700" },
+
   reserveButton: {
     marginTop: 15,
-    padding: 15,
-    borderRadius: 10,
+    paddingVertical: 16,
+    borderRadius: 16,
     borderWidth: 2,
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: COLORS_BASE.white,
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center"
   },
-  reserveButtonText: {
-    marginLeft: 10,
-    fontSize: 18,
-    fontWeight: '600',
-  },
+  reserveButtonText: { marginLeft: 10, fontSize: 16, fontWeight: "700" },
 });

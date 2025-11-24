@@ -3,15 +3,19 @@ import { View, StyleSheet, TextInput, Image, ActivityIndicator, Platform, Status
 import MapView, { Marker, MapUrlTile } from 'react-native-maps'; 
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context'; // Import pentru Safe Area
+
 import { useTheme, COLORS_BASE } from '../contexts/ThemeContext'; 
 import { useLocations } from '../contexts/LocationContext'; 
 
+// Asigură-te că imaginea există la această cale
 const customCoffeePinImage = require('../../assets/images/coffee_pin.png');
 
 export default function MapScreen() {
   const { isDark, COLORS } = useTheme();
   const { filteredLocations, loading, searchText, setSearchText } = useLocations();
   const router = useRouter();
+  const insets = useSafeAreaInsets();
 
   const handleLocationPress = (location: any) => {
     router.push({
@@ -54,7 +58,8 @@ export default function MapScreen() {
         styles.searchContainer, 
         { 
           backgroundColor: isDark ? COLORS.darkBackground : COLORS.white,
-          borderBottomColor: isDark ? '#333' : '#eee'
+          borderBottomColor: isDark ? '#333' : '#eee',
+          paddingTop: insets.top + 10, // Spațiere corectă sus
         }
       ]}>
         <Ionicons name="search" size={20} color={COLORS.textLight} style={styles.searchIcon} />
@@ -79,28 +84,31 @@ export default function MapScreen() {
         provider={undefined}
         initialRegion={initialRegion}
         mapType="standard"
+        // Optimizări pentru a preveni dispariția
+        moveOnMarkerPress={false}
       >
         <MapUrlTile urlTemplate={mapTileUrl} maximumZ={16} tileSize={256} />
 
         {filteredLocations.map((location) => (
           <Marker
-            key={location.id}
+            key={location.id} // Cheia unică este critică
             coordinate={{
               latitude: location.coordinates.lat,
               longitude: location.coordinates.long,
             }}
             onPress={() => handleLocationPress(location)}
-            // IMPORTANT: Pentru pini rotunzi, ancora este centrul exact (0.5, 0.5)
-            anchor={{ x: 0.5, y: 0.5 }}
+            // Ancorăm imaginea cu vârful jos (0.5 orizontal, 1.0 vertical)
+            anchor={{ x: 0.5, y: 1.0 }}
+            // Această proprietate forțează randarea continuă, rezolvând problema dispariției pe Android
+            tracksViewChanges={true} 
           >
-            {/* Containerul rotund în stilul cerut */}
-            <View style={[styles.roundMarkerContainer, { backgroundColor: COLORS.primary, borderColor: COLORS.white }]}>
-              <Image
-                source={customCoffeePinImage}
-                style={styles.markerImageInside}
-                resizeMode="contain" 
-              />
-            </View>
+            {/* Imaginea Pin-ului SIMPLIFICATĂ */}
+            <Image
+              source={customCoffeePinImage}
+              style={styles.markerImage}
+              resizeMode="contain" 
+              // onLoadEnd poate ajuta la debugging, dar lăsăm simplu pentru stabilitate
+            />
           </Marker>
         ))}
       </MapView>
@@ -113,7 +121,7 @@ const styles = StyleSheet.create({
   loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   
   searchContainer: {
-    paddingTop: Platform.OS === 'android' ? (StatusBar.currentHeight || 30) + 10 : 50,
+    // paddingTop se setează dinamic în componentă
     paddingBottom: 12,
     paddingHorizontal: 16,
     flexDirection: 'row',
@@ -136,25 +144,10 @@ const styles = StyleSheet.create({
   },
   map: { flex: 1 },
   
-  // --- STILURI NOI PENTRU PIN ROTUND ---
-  roundMarkerContainer: {
-    width: 30,  // Dimensiune fixă
-    height: 30, // Dimensiune fixă
-    borderRadius: 30, // Jumătate din lățime pentru a fi cerc perfect
-    borderWidth: 1, // Bordură albă groasă
-    justifyContent: 'center',
-    alignItems: 'center',
-    // Umbră pentru efectul de "pop-out"
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
-    elevation: 5,
-    overflow: 'hidden', // Asigură că imaginea din interior nu depășește cercul
-  },
-  markerImageInside: {
-    width: '95%', // Imaginea ocupă 85% din containerul rotund
-    height: '95%',
-    resizeMode: 'contain',
+  // STILURI PIN: Dimensiuni fixe, fără containere suplimentare
+  markerImage: {
+    width: 45, 
+    height: 40,
+    // Nu adăuga backgroundColor aici pentru a păstra transparența PNG-ului
   },
 });
