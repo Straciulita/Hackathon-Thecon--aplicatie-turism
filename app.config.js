@@ -1,13 +1,26 @@
+import 'dotenv/config'; // doar pentru EAS Build local
+
 export default ({ config }) => ({
   expo: {
-    // Detalii Expo
-    name: "Thecon Coffee Vibe", 
-    slug: "your-app", 
+    name: "Thecon Coffee Vibe",
+    slug: "your-app",
+    version: "1.0.0",
+    orientation: "portrait",
+    icon: "./assets/images/icon.png",
+    splash: {
+      image: "./assets/images/splash-icon.png",
+      resizeMode: "contain",
+      backgroundColor: "#ffffff",
+    },
+    userInterfaceStyle: "automatic",
+    assetBundlePatterns: ["**/*"],
 
-    // Câmpul 'android' este OBLIGATORIU pentru EAS Build
+    ios: {
+      supportsTablet: true,
+    },
+
     android: {
-      package: "com.thecon.galativibe", 
-      // ✅ PERMISIUNI COMPLETE PENTRU HARTĂ/LOCALIZARE/REȚEA
+      package: "com.thecon.galativibe",
       permissions: [
         "ACCESS_COARSE_LOCATION",
         "ACCESS_FINE_LOCATION",
@@ -16,40 +29,21 @@ export default ({ config }) => ({
         "INTERNET",
         "READ_EXTERNAL_STORAGE",
         "WRITE_EXTERNAL_STORAGE",
-        "ACCESS_NETWORK_STATE", // Adăugat pentru Tiles
+        "ACCESS_NETWORK_STATE",
       ],
-      // ✅ FIX CRASH NATIV: Adăugăm Google Maps Config
       config: {
-          googleMaps: {
-              // Lăsăm gol, dar prezența structurii forțează includerea dependințelor native esențiale.
-              apiKey: "" 
-          }
-      }
+        googleMaps: {
+          apiKey: "", // obligatoriu pentru Maps, chiar dacă lăsăm gol
+        },
+      },
     },
 
-    // Câmpul 'extra' pentru EAS
+    // Extra fields accesibile la runtime în aplicație
     extra: {
-      GEMINI_API_KEY: process.env.GEMINI_API_KEY, 
+      GEMINI_API_KEY: process.env.GEMINI_API_KEY || "", // Expo va citi cheia aici
       eas: {
-        projectId: "ad295f7c-9871-4d4c-b1e1-e9fbb4b9c417"
-      }
+        projectId: "ad295f7c-9871-4d4c-b1e1-e9fbb4b9c417",
+      },
     },
-    
-    // Configurații vizuale
-    version: "1.0.0",
-    orientation: "portrait",
-    icon: "./assets/images/icon.png", 
-    splash: {
-      image: "./assets/images/splash-icon.png", 
-      resizeMode: "contain",
-      backgroundColor: "#ffffff"
-    },
-    userInterfaceStyle: "automatic",
-    assetBundlePatterns: [
-      "**/*"
-    ],
-    ios: {
-      supportsTablet: true
-    }
-  }
+  },
 });
