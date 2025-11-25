@@ -7,6 +7,22 @@ export default ({ config }) => ({
     // Câmpul 'android' este OBLIGATORIU pentru EAS Build
     android: {
       package: "com.thecon.galativibe", 
+      // ✅ PERMISIUNI COMPLETE PENTRU HARTĂ/LOCALIZARE/REȚEA
+      permissions: [
+        // Permisiuni pentru localizare (necesare hărții)
+        "ACCESS_COARSE_LOCATION",
+        "ACCESS_FINE_LOCATION",
+        
+        // Permisiuni pentru hărți online și funcționare stabilă
+        "INTERNET",
+        "ACCESS_NETWORK_STATE",
+        "READ_EXTERNAL_STORAGE",
+        "WRITE_EXTERNAL_STORAGE",
+        
+        // Permisiuni de fundal (dacă ar fi folosite, dar le lăsăm pentru siguranță)
+        "ACCESS_BACKGROUND_LOCATION",
+        "FOREGROUND_SERVICE",
+      ],
     },
 
     // Câmpul 'extra' pentru EAS
@@ -17,15 +33,13 @@ export default ({ config }) => ({
       }
     },
     
-    // Adăugăm minimul necesar de configurație
+    // Configurații vizuale
     version: "1.0.0",
     orientation: "portrait",
     
-    // ✅ FIX: Calea corectă este acum ./assets/images/icon.png
+    // Asigură-te că aceste căi sunt CORECTE (assets/images/icon.png)
     icon: "./assets/images/icon.png", 
-    
     splash: {
-      // ✅ FIX: Calea corectă este acum ./assets/images/splash-icon.png (presupunând că doriți splash-icon.png)
       image: "./assets/images/splash-icon.png", 
       resizeMode: "contain",
       backgroundColor: "#ffffff"

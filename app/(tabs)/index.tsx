@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, StyleSheet, Image, ActivityIndicator } from 'react-native';
+import { View, StyleSheet, Image, ActivityIndicator, Platform } from 'react-native'; // Am adăugat Platform
 import MapView, { Marker, MapUrlTile } from 'react-native-maps'; 
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -14,7 +14,7 @@ const customCoffeePinImage = require('../../assets/images/coffee_pin.png');
 
 export default function MapScreen() {
   const { isDark, COLORS } = useTheme();
-  const { filteredLocations, loading } = useLocations(); // setSearchText nu e folosit direct aici
+  const { filteredLocations, loading } = useLocations(); 
   const router = useRouter();
   const insets = useSafeAreaInsets();
 
@@ -47,9 +47,11 @@ export default function MapScreen() {
     longitudeDelta: 4.5,
   };
   
+  // ✅ FIX: URL-URI DE TILE-URI PENTRU HARTE (Dark Mode și Light Mode)
   const mapTileUrl = isDark
-    ? "https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}.png"
-    : "https://tiles.stadiamaps.com/tiles/stamen_toner_lite/{z}/{x}/{y}.png";
+    ? "https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}@2x.png" // Adăugăm @2x pentru claritate
+    : "https://tiles.stadiamaps.com/tiles/stamen_toner_lite/{z}/{x}/{y}@2x.png"; // Adăugăm @2x pentru claritate
+
 
   return (
     <View style={[styles.container, { backgroundColor: COLORS.background }]}>
@@ -60,12 +62,14 @@ export default function MapScreen() {
       {/* HARTA */}
       <MapView
         style={styles.map}
-        provider={undefined}
+        // Provider-ul trebuie să fie ne-definit pentru a folosi MapUrlTile în mod implicit
+        provider={undefined} 
         initialRegion={initialRegion}
         mapType="standard"
         moveOnMarkerPress={false}
       >
-        <MapUrlTile urlTemplate={mapTileUrl} maximumZ={16} tileSize={256} />
+        {/* ✅ FIX TILES: Mutăm MapUrlTile în MapView */}
+        <MapUrlTile urlTemplate={mapTileUrl} maximumZ={16} tileSize={512} />
 
         {filteredLocations.map((location) => (
           <Marker
@@ -76,8 +80,8 @@ export default function MapScreen() {
             }}
             onPress={() => handleLocationPress(location)}
             anchor={{ x: 0.5, y: 1.0 }}
-            // ✅ FIX: Setăm tracksViewChanges la TRUE pentru a forța randarea (repară eroarea)
-            tracksViewChanges={true} 
+            // ✅ FIX: tracksViewChanges = true doar pe Android (unde e problema)
+            tracksViewChanges={Platform.OS === 'android'} 
           >
             <Image
               source={customCoffeePinImage}
