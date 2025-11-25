@@ -13,7 +13,6 @@ import {
   Image
 } from "react-native";
 
-// ✅ CORECȚIE CĂI IMPORT (relative la rădăcina app/)
 import LoadingScreen from "./components/LoadingScreen"; 
 import { COLORS, styles } from "./styles";
 import { signInWithEmailAndPassword } from "firebase/auth";
@@ -40,14 +39,13 @@ export default function LoginScreen() {
     try {
       await signInWithEmailAndPassword(auth, email, password);
       // Nu mai e nevoie de navigare manuală, AuthContext o va face automat.
-      // Dar dacă vrei, calea corectă este doar '/(tabs)/'
     } catch (error: any) {
       console.error(error);
       let errorMessage = "Ceva nu a mers bine.";
       
       if (error.code === 'auth/invalid-email') errorMessage = "Formatul email-ului este invalid.";
-      if (error.code === 'auth/user-not-found') errorMessage = "Nu există un cont cu acest email.";
-      if (error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') errorMessage = "Email sau parolă incorecte.";
+      if (error.code === 'auth/user-not-found' || error.code === 'auth/invalid-credential') errorMessage = "Email sau parolă incorecte.";
+      if (error.code === 'auth/wrong-password') errorMessage = "Parola este incorectă.";
       
       Alert.alert("Eșec la autentificare", errorMessage);
     } finally {
@@ -117,8 +115,8 @@ export default function LoginScreen() {
 
         <View style={styles.registerRow}>
           <Text style={styles.registerText}>Nu ai cont?</Text>
-          {/* ✅ Navigare corectă către register */}
-          <TouchableOpacity onPress={() => router.push("../register")}>
+          {/* ✅ MODIFICAT AICI: Folosim calea absolută /register */}
+          <TouchableOpacity onPress={() => router.push("/register")}>
             <Text style={styles.registerLink}>Creează unul!</Text>
           </TouchableOpacity>
         </View>

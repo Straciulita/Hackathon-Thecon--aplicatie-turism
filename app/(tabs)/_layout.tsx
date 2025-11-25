@@ -1,15 +1,13 @@
 import { Tabs } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
+import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import React from 'react';
 import { Platform } from 'react-native';
-// 1. Ne asigurăm că avem importul pentru Safe Area
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../contexts/ThemeContext'; 
 import AnimatedThemeIcon from '../../components/AnimatedThemeIcon';
 
 export default function TabLayout() {
   const { COLORS, isDark, theme, setTheme } = useTheme();
-  // 2. Obținem dimensiunile sigure
   const insets = useSafeAreaInsets();
 
   const handleThemeToggle = () => {
@@ -18,9 +16,9 @@ export default function TabLayout() {
     else setTheme('light');
   };
 
-  // CONSTANTE PENTRU SPAȚIERE
-  const BASE_TAB_HEIGHT = 75; // Mai înaltă decât înainte (era ~60)
-  const EXTRA_PADDING_BOTTOM = Platform.OS === 'ios' ? 15 : 20; // Spațiu extra jos
+  // ✅ AM MĂRIT ÎNĂLȚIMEA PENTRU A NU TĂIA ICONIȚELE
+  const BASE_TAB_HEIGHT = 90; 
+  const EXTRA_PADDING_BOTTOM = Platform.OS === 'ios' ? 20 : 15;
 
   return (
     <Tabs
@@ -28,28 +26,32 @@ export default function TabLayout() {
         tabBarStyle: {
           backgroundColor: isDark ? COLORS.darkBackground : COLORS.white,
           borderTopColor: isDark ? COLORS.secondary : COLORS.light,
-          
-          // ✅ 3. Calculăm înălțimea totală dinamic (Bază + Safe Area Bottom)
           height: BASE_TAB_HEIGHT + insets.bottom,
-
-          // ✅ 4. Adăugăm padding generos jos (Safe Area + Extra spațiu)
           paddingBottom: insets.bottom + EXTRA_PADDING_BOTTOM,
-          
-          paddingTop: 15, // Puțin mai mult spațiu și sus
-          elevation: 0, // Fără umbră standard pe Android (folosim borderTop)
-          borderTopWidth: 1, // Linie subtilă sus
+          paddingTop: 15, // Spațiu mai mare sus
+          elevation: 0,
+          borderTopWidth: 1, 
         },
         tabBarInactiveTintColor: COLORS.textLight,
         tabBarActiveTintColor: COLORS.primary, 
         headerShown: false, 
         tabBarLabelStyle: {
-            fontSize: 12, // Font puțin mai mare la etichete
+            fontSize: 11, 
             fontWeight: '600',
             marginTop: 5,
         }
       }}
     >
-      {/* 1. Hartă */}
+      {/* 1. HOME */}
+      <Tabs.Screen
+        name="home"
+        options={{
+          title: 'Acasă',
+          tabBarIcon: ({ color, focused }) => <Ionicons name={focused ? "home" : "home-outline"} size={26} color={color} />,
+        }}
+      />
+
+      {/* 2. HARTĂ (index.tsx) */}
       <Tabs.Screen
         name="index"
         options={{
@@ -58,7 +60,23 @@ export default function TabLayout() {
         }}
       />
       
-      {/* 2. Lista */}
+      {/* 3. MATCH (Tinder Style) */}
+      <Tabs.Screen
+        name="MatchScreen" 
+        options={{
+          title: 'Match',
+          // ✅ Iconiță mărită și vizibilă
+          tabBarIcon: ({ color, focused }) => (
+            <MaterialCommunityIcons 
+                name={focused ? "fire" : "fire-off"} 
+                size={32} // Puțin mai mare
+                color={focused ? "#E91E63" : color} 
+            />
+          ),
+        }}
+      />
+
+      {/* 4. LISTĂ */}
       <Tabs.Screen
         name="list"
         options={{
@@ -67,7 +85,7 @@ export default function TabLayout() {
         }}
       />
 
-      {/* 3. Profil */}
+      {/* 5. PROFIL */}
       <Tabs.Screen
         name="profile"
         options={{
@@ -76,7 +94,7 @@ export default function TabLayout() {
         }}
       />
       
-      {/* 4. Temă (Buton Animat) */}
+      {/* 6. TEMĂ (Buton) */}
       <Tabs.Screen
         name="toggle-theme" 
         options={{
@@ -91,6 +109,7 @@ export default function TabLayout() {
         })}
       />
 
+      {/* Rute Ascunse */}
       <Tabs.Screen name="explore" options={{ href: null }} />
       <Tabs.Screen name="theme-settings" options={{ href: null }} />
     </Tabs>

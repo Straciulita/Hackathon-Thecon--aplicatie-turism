@@ -10,28 +10,23 @@ import {
   TextInput,
   TouchableOpacity,
   View,
-  ActivityIndicator // Adăugat pentru loading
+  ActivityIndicator
 } from "react-native";
 
-// Importuri Firebase
 import { createUserWithEmailAndPassword } from "firebase/auth";
 import { auth } from "./firebaseConfig";
-
 import { COLORS, styles } from "./styles";
 
 export default function RegisterScreen() {
   const router = useRouter();
 
-  // 1. State-uri pentru formular
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
-  // 2. Funcția de înregistrare
   const handleRegister = async () => {
-    // Validări simple
     if (!email || !password || !confirmPassword) {
       Alert.alert("Eroare", "Te rugăm să completezi toate câmpurile.");
       return;
@@ -45,11 +40,14 @@ export default function RegisterScreen() {
     setIsLoading(true);
 
     try {
-      // Creare cont în Firebase
       await createUserWithEmailAndPassword(auth, email, password);
       
       Alert.alert("Succes", "Cont creat cu succes!", [
-        { text: "OK", onPress: () => router.replace("../(tabs)/index") } // Navighează direct în aplicație
+        { 
+            text: "OK", 
+            // ✅ MODIFICAT AICI: Te duce la HOME, nu la Map
+            onPress: () => router.replace("/(tabs)/home") 
+        } 
       ]);
       
     } catch (error: any) {
@@ -76,7 +74,6 @@ export default function RegisterScreen() {
         showsVerticalScrollIndicator={false}
       >
 
-        {/* Icon header */}
         <View style={styles.iconWrapper}>
           <Ionicons name="person-add-outline" size={50} color={COLORS.primary} />
         </View>
@@ -84,7 +81,6 @@ export default function RegisterScreen() {
         <Text style={styles.mainTitle}>Cont Nou</Text>
         <Text style={styles.subTitle}>Alătură-te comunității noastre ☕️</Text>
 
-        {/* Input: Nume Complet */}
         <View style={styles.inputWrapper}>
           <Ionicons name="person-outline" size={22} color={COLORS.primary} />
           <TextInput 
@@ -96,7 +92,6 @@ export default function RegisterScreen() {
           />
         </View>
 
-        {/* Input: Email */}
         <View style={styles.inputWrapper}>
           <Ionicons name="mail-outline" size={22} color={COLORS.primary} />
           <TextInput 
@@ -110,7 +105,6 @@ export default function RegisterScreen() {
           />
         </View>
 
-        {/* Input: Parolă */}
         <View style={styles.inputWrapper}>
           <Ionicons name="lock-closed-outline" size={22} color={COLORS.primary} />
           <TextInput 
@@ -123,7 +117,6 @@ export default function RegisterScreen() {
           />
         </View>
 
-        {/* Input: Confirmă Parola */}
         <View style={styles.inputWrapper}>
           <Ionicons name="shield-checkmark-outline" size={22} color={COLORS.primary} />
           <TextInput 
@@ -136,7 +129,6 @@ export default function RegisterScreen() {
           />
         </View>
 
-        {/* Buton Creează Cont */}
         <TouchableOpacity 
           style={styles.loginButton} 
           onPress={handleRegister}
@@ -149,7 +141,6 @@ export default function RegisterScreen() {
           )}
         </TouchableOpacity>
 
-        {/* Link către Login */}
         <View style={styles.registerRow}>
           <Text style={styles.registerText}>Ai deja cont?</Text>
           <TouchableOpacity onPress={() => router.back()}>
