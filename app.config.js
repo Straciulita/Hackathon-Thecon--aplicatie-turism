@@ -9,20 +9,22 @@ export default ({ config }) => ({
       package: "com.thecon.galativibe", 
       // ✅ PERMISIUNI COMPLETE PENTRU HARTĂ/LOCALIZARE/REȚEA
       permissions: [
-        // Permisiuni pentru localizare (necesare hărții)
         "ACCESS_COARSE_LOCATION",
         "ACCESS_FINE_LOCATION",
-        
-        // Permisiuni pentru hărți online și funcționare stabilă
-        "INTERNET",
-        "ACCESS_NETWORK_STATE",
-        "READ_EXTERNAL_STORAGE",
-        "WRITE_EXTERNAL_STORAGE",
-        
-        // Permisiuni de fundal (dacă ar fi folosite, dar le lăsăm pentru siguranță)
         "ACCESS_BACKGROUND_LOCATION",
         "FOREGROUND_SERVICE",
+        "INTERNET",
+        "READ_EXTERNAL_STORAGE",
+        "WRITE_EXTERNAL_STORAGE",
+        "ACCESS_NETWORK_STATE", // Adăugat pentru Tiles
       ],
+      // ✅ FIX CRASH NATIV: Adăugăm Google Maps Config
+      config: {
+          googleMaps: {
+              // Lăsăm gol, dar prezența structurii forțează includerea dependințelor native esențiale.
+              apiKey: "" 
+          }
+      }
     },
 
     // Câmpul 'extra' pentru EAS
@@ -36,8 +38,6 @@ export default ({ config }) => ({
     // Configurații vizuale
     version: "1.0.0",
     orientation: "portrait",
-    
-    // Asigură-te că aceste căi sunt CORECTE (assets/images/icon.png)
     icon: "./assets/images/icon.png", 
     splash: {
       image: "./assets/images/splash-icon.png", 
