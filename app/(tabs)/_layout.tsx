@@ -36,11 +36,10 @@ export default function TabLayout() {
       <Tabs.Screen
         name="home"
         options={{
-          title: 'Explore',
+          title: 'Home', // ✅ Titlu schimbat în Home
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="compass-outline" size={size} color={color} />
+            <Ionicons name="home-outline" size={size} color={color} /> // ✅ Iconiță schimbată în Casă
           ),
-          // unmountOnBlur a fost eliminat pentru a rezolva eroarea 2322
         }}
       />
 

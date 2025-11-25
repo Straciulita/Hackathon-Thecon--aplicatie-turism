@@ -8,6 +8,17 @@ import { useLocations } from '../contexts/LocationContext';
 import LocationCard from '../components/LocationCard';
 import SearchBar from '../components/SearchBar';
 
+// ✅ COMPONENTA MUTATĂ ÎN AFARA FUNCȚIEI PRINCIPALE
+const SearchBarWrapper = ({ children, styles }: { children: React.ReactNode, styles: any }) => {
+    const { COLORS } = useTheme(); // Folosim useTheme aici
+    
+    return (
+        <View style={[styles.searchWrapper, { backgroundColor: COLORS.background }]}>
+          {children}
+        </View>
+    );
+};
+
 export default function ListScreen() {
   const { COLORS } = useTheme();
   const { filteredLocations } = useLocations();
@@ -20,17 +31,11 @@ export default function ListScreen() {
     });
   };
 
-  const SearchBarWrapper = ({ children }: { children: React.ReactNode }) => (
-    <View style={[styles.searchWrapper, { backgroundColor: COLORS.background }]}>
-      {children}
-    </View>
-  );
-
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: COLORS.background }]}>
       
       {/* Search Bar în wrapper pentru spațiere verticală */}
-      <SearchBarWrapper>
+      <SearchBarWrapper styles={styles}>
         <SearchBar isMapMode={false} />
       </SearchBarWrapper>
 
@@ -56,7 +61,6 @@ export default function ListScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1 },
   searchWrapper: {
-    // ✅ Mărit de la 10 la 25
     paddingTop: 25, 
     paddingBottom: 10,
     shadowColor: "#000",

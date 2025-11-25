@@ -7,17 +7,16 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../contexts/ThemeContext'; 
 import { useLocations } from '../contexts/LocationContext'; 
 
-// ✅ IMPORT NOU
 import SearchBar from '../components/SearchBar';
 
 // Asigură-te că imaginea există la această cale
-const customCoffeePinImage = require('../../assets/images/coffee_pin.png'); // S-ar putea să fie '../assets/images/coffee_pin.png' depinzând de structură
+const customCoffeePinImage = require('../../assets/images/coffee_pin.png'); 
 
 export default function MapScreen() {
   const { isDark, COLORS } = useTheme();
-  const { filteredLocations, loading, setSearchText } = useLocations();
+  const { filteredLocations, loading } = useLocations(); // setSearchText nu e folosit direct aici
   const router = useRouter();
-  const insets = useSafeAreaInsets(); // Rămâne aici pentru că e folosit de map
+  const insets = useSafeAreaInsets();
 
   const handleLocationPress = (location: any) => {
     router.push({
@@ -55,8 +54,7 @@ export default function MapScreen() {
   return (
     <View style={[styles.container, { backgroundColor: COLORS.background }]}>
       
-      {/* ✅ COMPONENTA SEARCH BAR REUTILIZABILĂ */}
-      {/* isMapMode={true} asigură spațierea corectă în Safe Area de sus */}
+      {/* COMPONENTA SEARCH BAR */}
       <SearchBar isMapMode={true} />
 
       {/* HARTA */}
@@ -78,7 +76,8 @@ export default function MapScreen() {
             }}
             onPress={() => handleLocationPress(location)}
             anchor={{ x: 0.5, y: 1.0 }}
-            tracksViewChanges={false}
+            // ✅ FIX: Setăm tracksViewChanges la TRUE pentru a forța randarea (repară eroarea)
+            tracksViewChanges={true} 
           >
             <Image
               source={customCoffeePinImage}
@@ -95,7 +94,6 @@ export default function MapScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1 },
   loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  // Am scos searchContainer și searchInput styles de aici
   map: { flex: 1 },
   
   markerImage: {
