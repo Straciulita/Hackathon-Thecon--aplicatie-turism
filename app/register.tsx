@@ -45,7 +45,7 @@ export default function RegisterScreen() {
       Alert.alert("Succes", "Cont creat cu succes!", [
         { 
             text: "OK", 
-            // ✅ MODIFICAT AICI: Te duce la HOME, nu la Map
+            // ✅ MODIFICAT AICI: Te duce la HOME
             onPress: () => router.replace("/(tabs)/home") 
         } 
       ]);

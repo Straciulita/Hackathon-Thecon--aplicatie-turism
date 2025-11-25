@@ -9,7 +9,8 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   Linking,
-  Alert
+  Alert,
+  Platform
 } from 'react-native';
 
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
@@ -18,11 +19,9 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTheme, COLORS_BASE } from './contexts/ThemeContext';
 import { useLocations } from './contexts/LocationContext';
 
-const HF_API_KEY = "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";
-
-// ✅ MODEL NOU (VECHI & STABIL): Google Flan-T5 Large
-// Acesta este mult mai probabil să fie disponibil pe API-ul gratuit.
-const HF_MODEL_URL = "https://api-inference.huggingface.co/models/google/flan-t5-large";
+// ✅ IMPORTĂM DATELE LOCALE (Descrierile Vibe)
+// Asigură-te că ai creat fișierul app/data/ai_descriptions.js cu conținutul furnizat anterior
+import { VIBE_DESCRIPTIONS } from '../assets/data/ai_descriptions'; 
 
 export default function DetailsScreen() {
   const { COLORS, isDark } = useTheme();
@@ -30,92 +29,62 @@ export default function DetailsScreen() {
   const { locationId } = useLocalSearchParams();
   const { locations } = useLocations();
 
+  // Găsim locația curentă pe baza ID-ului
   const selectedLocation = locations.find(loc => loc.id.toString() === locationId);
 
   const [currentDescription, setCurrentDescription] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isVibeGenerated, setIsVibeGenerated] = useState(false);
 
+  // Setăm descrierea inițială (cea scurtă din JSON-ul original)
   useEffect(() => {
     if (selectedLocation) {
       setCurrentDescription(selectedLocation.short_description || "Descriere indisponibilă.");
     }
   }, [selectedLocation]);
 
-  // 🛡️ FALLBACK: Generator Local (Plasă de siguranță)
-  const generateLocalFallback = () => {
-    const name = selectedLocation?.name || "";
-    const rating = selectedLocation?.rating || 0;
-    
-    let vibe = "✨ Vibe Check (Mod Offline): ";
-    
-    if (rating >= 4.5) {
-        vibe += `${name} este un loc absolut superb! Energia de aici este molipsitoare și merită vizitat neapărat. 🌟 Un must-visit în oraș!`;
-    } else {
-        vibe += `${name} este un loc chill și prietenos. Perfect pentru o ieșire relaxată fără prea multă agitație. ☕ Atmosferă plăcută garantată.`;
-    }
-    return vibe;
-  };
-
-  // 🧠 LOGICA AI (Flan-T5)
+  // 🧠 LOGICA "AI" SIMULATĂ (PREIA DIN FIȘIER LOCAL)
   const generateVibeDescription = useCallback(async () => {
     if (isLoading || !selectedLocation) return;
 
     setIsLoading(true);
 
-    try {
-      // Prompt simplificat pentru Flan-T5 (nu suportă chat complex)
-      const prompt = `Scrie o recenzie scurtă și veselă în limba română pentru locul "${selectedLocation.name}". Descriere originală: ${selectedLocation.short_description}`;
-
-      const response = await fetch(HF_MODEL_URL, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${HF_API_KEY}`
-        },
-        body: JSON.stringify({
-          inputs: prompt,
-          parameters: { 
-            max_new_tokens: 100, // Scurt și la obiect
-            temperature: 0.9,    // Mai creativ
-            do_sample: true
-          }
-        })
-      });
-
-      if (!response.ok) {
-        throw new Error(`API Error: ${response.status}`);
-      }
-
-      const data = await response.json();
-      console.log("HF Data:", data);
-
-      let aiText = "";
-      // Flan-T5 returnează de obicei [{ generated_text: "..." }]
-      if (Array.isArray(data) && data[0]?.generated_text) {
-        aiText = data[0].generated_text;
-      } else if (data?.generated_text) {
-        aiText = data.generated_text;
-      } else {
-        throw new Error("Format invalid");
-      }
-
-      setCurrentDescription("✨ " + aiText.trim());
-      setIsVibeGenerated(true);
-
-    } catch (error) {
-      console.log("⚠️ API Failed, switching to local fallback:", error);
+    // Simulăm o mică întârziere (1.5s) pentru a păstra efectul de "loading" (UX bun)
+    // Acest lucru face să pară că aplicația "gândește" sau interoghează un server.
+    setTimeout(() => {
+      const locationName = selectedLocation.name;
       
-      // ACTIVARE FALLBACK AUTOMATĂ
-      const fallbackText = generateLocalFallback();
-      setCurrentDescription(fallbackText);
-      setIsVibeGenerated(true);
-      
-    } finally {
+      // Căutăm descrierea în fișierul nostru local folosind numele locației ca cheie
+      // @ts-ignore (ignorăm eroarea de tipare strictă pentru cheile obiectului, e safe aici)
+      const vibeText = VIBE_DESCRIPTIONS[locationName] || VIBE_DESCRIPTIONS["DEFAULT"];
+
+      setCurrentDescription(vibeText);
+      setIsVibeGenerated(true); // Ascundem butonul după generare și arătăm titlul nou
       setIsLoading(false);
-    }
+    }, 1500); 
+
   }, [selectedLocation, isLoading]);
 
+  // 🗺️ Navigare (Google Maps / Apple Maps)
+  const handleNavigation = () => {
+    if (!selectedLocation) return;
+    
+    const { lat, long } = selectedLocation.coordinates;
+    const label = selectedLocation.name;
+
+    const url = Platform.select({
+      ios: `maps:0,0?q=${label}@${lat},${long}`,
+      android: `geo:0,0?q=${lat},${long}(${label})`
+    });
+
+    if (url) {
+        Linking.openURL(url).catch(() => {
+            Alert.alert("Eroare", "Nu am putut deschide aplicația de hărți.");
+        });
+    }
+  };
+
+  // 📞 Rezervare (WhatsApp)
   const handleReserve = () => {
     if (!selectedLocation) return;
     const url = `whatsapp://send?text=Salut! Aș vrea să fac o rezervare la ${selectedLocation.name}.`;
@@ -124,6 +93,7 @@ export default function DetailsScreen() {
     });
   };
 
+  // Header Customizat
   const headerStyle = {
     headerShown: true,
     title: selectedLocation?.name || "Detalii",
@@ -160,6 +130,7 @@ export default function DetailsScreen() {
         />
 
         <View style={styles.contentPadding}>
+          {/* Titlu și Rating */}
           <View style={styles.titleRow}>
             <Text style={[styles.locationTitle, { color: COLORS.textPrimary }]}>
               {selectedLocation.name}
@@ -170,19 +141,22 @@ export default function DetailsScreen() {
             </View>
           </View>
 
+          {/* Adresă */}
           <Text style={[styles.addressText, { color: COLORS_BASE.textLight }]}>
             <Ionicons name="location-outline" size={14} color={COLORS_BASE.textLight} /> {selectedLocation.address}
           </Text>
 
+          {/* Descriere (care se va schimba la apăsarea butonului) */}
           <View style={styles.descriptionSection}>
             <Text style={[styles.descriptionHeader, { color: COLORS.primary }]}>
-              {isVibeGenerated ? "✨ Vibe Check" : "Descriere"}
+              {isVibeGenerated ? "✨ Vibe Check (Generat)" : "Descriere"}
             </Text>
             <Text style={[styles.descriptionText, { color: COLORS.textPrimary }]}>
               {currentDescription}
             </Text>
           </View>
 
+          {/* Buton AI (Dispare după generare) */}
           {!isVibeGenerated && (
             <TouchableOpacity
               style={[styles.aiButton, { backgroundColor: isLoading ? COLORS.secondary : COLORS.primary }]}
@@ -200,15 +174,32 @@ export default function DetailsScreen() {
             </TouchableOpacity>
           )}
 
-          <TouchableOpacity
-            style={[styles.reserveButton, { borderColor: COLORS.primary }]}
-            onPress={handleReserve}
-          >
-            <Ionicons name="logo-whatsapp" size={22} color="#25D366" />
-            <Text style={[styles.reserveButtonText, { color: COLORS.primary }]}>
-              Rezervă pe WhatsApp
-            </Text>
-          </TouchableOpacity>
+          {/* Grup Butoane Acțiune (Navigare & Rezervare) */}
+          <View style={styles.actionButtonsContainer}>
+              
+              {/* Buton Navigare (Hărți) */}
+              <TouchableOpacity
+                style={[styles.actionButton, { borderColor: COLORS.primary, backgroundColor: COLORS.white }]}
+                onPress={handleNavigation}
+              >
+                <Ionicons name="navigate-circle" size={24} color={COLORS.primary} />
+                <Text style={[styles.actionButtonText, { color: COLORS.primary }]}>
+                  Navighează
+                </Text>
+              </TouchableOpacity>
+
+              {/* Buton Rezervare (WhatsApp) */}
+              <TouchableOpacity
+                style={[styles.actionButton, { borderColor: '#25D366', backgroundColor: '#25D366' }]}
+                onPress={handleReserve}
+              >
+                <Ionicons name="logo-whatsapp" size={22} color="white" />
+                <Text style={[styles.actionButtonText, { color: 'white' }]}>
+                  Rezervă
+                </Text>
+              </TouchableOpacity>
+
+          </View>
 
         </View>
       </ScrollView>
@@ -250,7 +241,8 @@ const styles = StyleSheet.create({
   descriptionText: { fontSize: 16, lineHeight: 26, opacity: 0.9 },
 
   aiButton: {
-    marginTop: 30,
+    marginTop: 20,
+    marginBottom: 20,
     paddingVertical: 16,
     borderRadius: 16,
     flexDirection: "row",
@@ -264,15 +256,21 @@ const styles = StyleSheet.create({
   },
   aiButtonText: { color: COLORS_BASE.white, fontSize: 16, fontWeight: "700" },
 
-  reserveButton: {
-    marginTop: 15,
-    paddingVertical: 16,
+  actionButtonsContainer: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      gap: 10,
+      marginTop: 10,
+  },
+  actionButton: {
+    flex: 1,
+    paddingVertical: 14,
     borderRadius: 16,
     borderWidth: 2,
     flexDirection: "row",
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: 'transparent',
+    gap: 8,
   },
-  reserveButtonText: { marginLeft: 10, fontSize: 16, fontWeight: "700" },
+  actionButtonText: { fontSize: 16, fontWeight: "700" },
 });

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -8,17 +8,17 @@ import {
   Image,
   TextInput,
   Alert,
+  ActivityIndicator
 } from 'react-native';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
-import { useRouter } from 'expo-router';
 import { signOut } from 'firebase/auth';
+import AsyncStorage from '@react-native-async-storage/async-storage'; // ✅ IMPORT NOU
 
 import { auth } from '../firebaseConfig';
 import { useTheme } from '../contexts/ThemeContext';
 
 export default function ProfileScreen() {
-  const router = useRouter();
   const { COLORS, isDark, theme, setTheme } = useTheme();
   const user = auth.currentUser;
 
@@ -26,25 +26,65 @@ export default function ProfileScreen() {
   const [name, setName] = useState("Coffee Explorer");
   const [bio, setBio] = useState("Caut cea mai bună cafea din oraș. ☕️");
   const [image, setImage] = useState('https://img.freepik.com/free-psd/3d-illustration-human-avatar-profile_23-2150671142.jpg');
-  
-  // State pentru preferința Coffee/Tea
   const [drinkPref, setDrinkPref] = useState<'coffee' | 'tea'>('coffee');
-
-  // 🎨 State pentru Culoarea Profilului (Default: Maro-ul temei)
   const [favColor, setFavColor] = useState('#8B5A3C');
-
-  // State pentru Modul de Editare
+  
   const [isEditing, setIsEditing] = useState(false);
+  const [isLoadingData, setIsLoadingData] = useState(true); // ✅ Loading state pentru date
 
-  // Culori disponibile pentru selectare
   const PROFILE_COLORS = [
-    '#8B5A3C', // Maro (Default)
-    '#2E8B57', // Verde Pădure
-    '#1E90FF', // Albastru
-    '#E91E63', // Roz
-    '#FF9800', // Portocaliu
-    '#607D8B', // Gri Albăstrui
+    '#8B5A3C', '#2E8B57', '#1E90FF', '#E91E63', '#FF9800', '#607D8B',
   ];
+
+  // Cheile pentru salvare (unice per user, dacă e posibil, dar simplu acum)
+  const STORAGE_KEYS = {
+    NAME: `user_name_${user?.uid}`,
+    BIO: `user_bio_${user?.uid}`,
+    IMAGE: `user_image_${user?.uid}`,
+    DRINK: `user_drink_${user?.uid}`,
+    COLOR: `user_color_${user?.uid}`,
+  };
+
+  // ✅ 1. ÎNCĂRCARE DATE LA PORNIRE
+  useEffect(() => {
+    const loadProfileData = async () => {
+      try {
+        const savedName = await AsyncStorage.getItem(STORAGE_KEYS.NAME);
+        const savedBio = await AsyncStorage.getItem(STORAGE_KEYS.BIO);
+        const savedImage = await AsyncStorage.getItem(STORAGE_KEYS.IMAGE);
+        const savedDrink = await AsyncStorage.getItem(STORAGE_KEYS.DRINK);
+        const savedColor = await AsyncStorage.getItem(STORAGE_KEYS.COLOR);
+
+        if (savedName) setName(savedName);
+        if (savedBio) setBio(savedBio);
+        if (savedImage) setImage(savedImage);
+        if (savedDrink) setDrinkPref(savedDrink as 'coffee' | 'tea');
+        if (savedColor) setFavColor(savedColor);
+        
+      } catch (error) {
+        console.log("Eroare la încărcarea profilului", error);
+      } finally {
+        setIsLoadingData(false);
+      }
+    };
+
+    if (user) {
+        loadProfileData();
+    }
+  }, [user]);
+
+  // ✅ 2. SALVARE DATE
+  const saveProfileData = async () => {
+    try {
+      await AsyncStorage.setItem(STORAGE_KEYS.NAME, name);
+      await AsyncStorage.setItem(STORAGE_KEYS.BIO, bio);
+      await AsyncStorage.setItem(STORAGE_KEYS.IMAGE, image);
+      await AsyncStorage.setItem(STORAGE_KEYS.DRINK, drinkPref);
+      await AsyncStorage.setItem(STORAGE_KEYS.COLOR, favColor);
+    } catch (error) {
+      Alert.alert("Eroare", "Nu am putut salva datele local.");
+    }
+  };
 
   // --- FUNCȚII ---
 
@@ -63,17 +103,19 @@ export default function ProfileScreen() {
     }
   };
 
+  // 🔑 LOGOUT (Fără redirect manual, lăsăm layout-ul să se ocupe)
   const handleLogout = async () => {
     try {
       await signOut(auth);
-      router.replace('/');
     } catch (error) {
       Alert.alert("Eroare", "Nu am putut să te deconectăm.");
     }
   };
 
-  const toggleEdit = () => {
+  const toggleEdit = async () => {
     if (isEditing) {
+      // Dacă tocmai am terminat editarea -> SALVĂM
+      await saveProfileData();
       Alert.alert("Salvat", "Profilul tău a fost actualizat!");
     }
     setIsEditing(!isEditing);
@@ -112,12 +154,19 @@ export default function ProfileScreen() {
     );
   };
 
+  if (isLoadingData) {
+      return (
+          <View style={[styles.container, { justifyContent: 'center', alignItems: 'center', backgroundColor: COLORS.background }]}>
+              <ActivityIndicator size="large" color={COLORS.primary} />
+          </View>
+      );
+  }
+
   return (
     <View style={[styles.container, { backgroundColor: COLORS.background }]}>
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 100 }}>
         
         {/* === HEADER DINAMIC === */}
-        {/* Folosim favColor pentru fundal */}
         <View style={[styles.headerCover, { backgroundColor: favColor }]}>
             <TouchableOpacity style={styles.logoutBtn} onPress={handleLogout}>
                 <Ionicons name="log-out-outline" size={24} color="white" />
@@ -137,7 +186,7 @@ export default function ProfileScreen() {
                 )}
             </View>
 
-            {/* Buton Principal Editare / Salvare */}
+            {/* Buton Editare / Salvare */}
             <TouchableOpacity 
               style={[styles.editMainBtn, { backgroundColor: isEditing ? '#4CAF50' : favColor }]} 
               onPress={toggleEdit}
@@ -148,7 +197,7 @@ export default function ProfileScreen() {
 
             <Text style={[styles.emailText, { color: COLORS.textLight }]}>{user?.email || "guest@app.com"}</Text>
 
-            {/* === SELECTOR CULOARE (Doar în Edit Mode) === */}
+            {/* Selector Culoare (Doar în Edit Mode) */}
             {isEditing && (
               <View style={styles.colorPickerContainer}>
                 <Text style={[styles.sectionHeader, { color: COLORS.textPrimary, fontSize: 14, marginBottom: 8 }]}>
@@ -161,7 +210,7 @@ export default function ProfileScreen() {
                       style={[
                         styles.colorCircle, 
                         { backgroundColor: color },
-                        favColor === color && styles.activeColorCircle // Highlight selecție
+                        favColor === color && styles.activeColorCircle 
                       ]}
                       onPress={() => setFavColor(color)}
                     />
@@ -170,7 +219,7 @@ export default function ProfileScreen() {
               </View>
             )}
 
-            {/* === SECTIUNE: MY VIBE === */}
+            {/* My Vibe */}
             <View style={styles.sectionContainer}>
                <Text style={[styles.sectionHeader, { color: COLORS.textPrimary }]}>My Vibe</Text>
                
@@ -178,7 +227,6 @@ export default function ProfileScreen() {
                   style={[
                     styles.drinkCard, 
                     { 
-                      // Folosim favColor pentru fundalul cardului
                       backgroundColor: drinkPref === 'coffee' ? favColor : (isDark ? '#333' : '#8BC34A'),
                       opacity: isEditing ? 1 : 0.9 
                     }
@@ -203,7 +251,7 @@ export default function ProfileScreen() {
                </TouchableOpacity>
             </View>
 
-            {/* === FORMULAR === */}
+            {/* Formular */}
             <View style={styles.formSection}>
                 <Text style={[styles.label, { color: COLORS.textPrimary }]}>Nume Afișat</Text>
                 <TextInput 
@@ -241,7 +289,7 @@ export default function ProfileScreen() {
                 />
             </View>
 
-            {/* === SETĂRI TEMĂ === */}
+            {/* Setări Temă */}
             <View style={styles.sectionContainer}>
               <Text style={[styles.sectionHeader, { color: COLORS.textPrimary }]}>Temă Aplicație</Text>
               <View style={styles.themeRow}>
@@ -251,7 +299,7 @@ export default function ProfileScreen() {
               </View>
             </View>
 
-            {/* === STATISTICI === */}
+            {/* Statistici */}
             <View style={[styles.statsRow, { backgroundColor: isDark ? '#333' : '#FFF' }]}>
                 <View style={styles.statBadge}>
                     <Text style={[styles.statNumber, { color: favColor }]}>12</Text>
@@ -274,9 +322,7 @@ export default function ProfileScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
+  container: { flex: 1 },
   headerCover: {
     height: 150,
     width: '100%',
@@ -324,17 +370,8 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     marginTop: 5,
   },
-  editMainBtnText: {
-    color: 'white',
-    fontWeight: 'bold',
-    marginLeft: 5,
-  },
-  emailText: {
-    fontSize: 14,
-    marginBottom: 15,
-  },
-  
-  // Styles pentru Color Picker
+  editMainBtnText: { color: 'white', fontWeight: 'bold', marginLeft: 5 },
+  emailText: { fontSize: 14, marginBottom: 15 },
   colorPickerContainer: {
     width: '100%',
     marginBottom: 20,
@@ -342,25 +379,20 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0,0,0,0.03)',
     borderRadius: 15,
   },
-  colorRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-  },
+  colorRow: { flexDirection: 'row', justifyContent: 'space-around' },
   colorCircle: {
     width: 35,
     height: 35,
     borderRadius: 17.5,
     borderWidth: 2,
-    borderColor: 'white', // Border default
+    borderColor: 'white',
     elevation: 2,
   },
   activeColorCircle: {
     borderWidth: 3,
-    borderColor: '#333', // Border când e selectat
+    borderColor: '#333',
     transform: [{ scale: 1.1 }],
   },
-
-  // Drink Card
   drinkCard: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -376,12 +408,7 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     position: 'relative',
   },
-  drinkText: {
-    color: '#FFF',
-    fontWeight: 'bold',
-    fontSize: 18,
-    marginLeft: 10,
-  },
+  drinkText: { color: '#FFF', fontWeight: 'bold', fontSize: 18, marginLeft: 10 },
   editBadge: {
     position: 'absolute',
     right: 15,
@@ -389,11 +416,7 @@ const styles = StyleSheet.create({
     padding: 4,
     borderRadius: 10,
   },
-
-  formSection: {
-    width: '100%',
-    marginBottom: 20,
-  },
+  formSection: { width: '100%', marginBottom: 20 },
   label: {
     fontSize: 14,
     marginBottom: 6,
@@ -401,27 +424,10 @@ const styles = StyleSheet.create({
     marginLeft: 5,
     marginTop: 10,
   },
-  input: {
-    borderRadius: 15,
-    padding: 15,
-    fontSize: 16,
-  },
-  
-  sectionContainer: {
-    width: '100%',
-    marginBottom: 25,
-  },
-  sectionHeader: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 10,
-    marginLeft: 5,
-  },
-  themeRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    gap: 10,
-  },
+  input: { borderRadius: 15, padding: 15, fontSize: 16 },
+  sectionContainer: { width: '100%', marginBottom: 25 },
+  sectionHeader: { fontSize: 18, fontWeight: 'bold', marginBottom: 10, marginLeft: 5 },
+  themeRow: { flexDirection: 'row', justifyContent: 'space-between', gap: 10 },
   themeButton: {
     flex: 1,
     flexDirection: 'row',
@@ -431,12 +437,7 @@ const styles = StyleSheet.create({
     borderRadius: 15,
     borderWidth: 1,
   },
-  themeButtonText: {
-    marginLeft: 8,
-    fontWeight: '600',
-    fontSize: 14,
-  },
-
+  themeButtonText: { marginLeft: 8, fontWeight: '600', fontSize: 14 },
   statsRow: {
     flexDirection: 'row',
     width: '100%',
@@ -448,16 +449,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.05,
     shadowOffset: {width: 0, height: 4},
   },
-  statBadge: {
-    alignItems: 'center',
-    flex: 1,
-  },
-  statNumber: {
-    fontWeight: 'bold',
-    fontSize: 18,
-  },
-  statLabel: {
-    fontSize: 12,
-    color: '#999',
-  },
+  statBadge: { alignItems: 'center', flex: 1 },
+  statNumber: { fontWeight: 'bold', fontSize: 18 },
+  statLabel: { fontSize: 12, color: '#999' },
 });
