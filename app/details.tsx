@@ -16,53 +16,57 @@ import {
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 
-import { useTheme, COLORS_BASE } from './contexts/ThemeContext';
+import { useTheme } from './contexts/ThemeContext';
 import { useLocations } from './contexts/LocationContext';
 
-// ✅ IMPORTĂM DATELE LOCALE (Descrierile Vibe)
-// Asigură-te că ai creat fișierul app/data/ai_descriptions.js cu conținutul furnizat anterior
-import { VIBE_DESCRIPTIONS } from '../assets/data/ai_descriptions'; 
+// ✅ IMPORT NOU: Serviciul de AI real/simulat
+// Asigură-te că ai creat app/services/aiService.ts!
+import { generateVibe } from './services/aiService'; 
 
 export default function DetailsScreen() {
-  const { COLORS, isDark } = useTheme();
+  const { COLORS } = useTheme();
   const router = useRouter();
   const { locationId } = useLocalSearchParams();
   const { locations } = useLocations();
 
-  // Găsim locația curentă pe baza ID-ului
   const selectedLocation = locations.find(loc => loc.id.toString() === locationId);
 
   const [currentDescription, setCurrentDescription] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isVibeGenerated, setIsVibeGenerated] = useState(false);
 
-  // Setăm descrierea inițială (cea scurtă din JSON-ul original)
   useEffect(() => {
     if (selectedLocation) {
+      // Setează descrierea inițială din JSON [cite: 13]
       setCurrentDescription(selectedLocation.short_description || "Descriere indisponibilă.");
     }
   }, [selectedLocation]);
 
-  // 🧠 LOGICA "AI" SIMULATĂ (PREIA DIN FIȘIER LOCAL)
+  // 🧠 LOGICA "AI" REALĂ (pentru Vibe Generator - 40 de puncte)
   const generateVibeDescription = useCallback(async () => {
     if (isLoading || !selectedLocation) return;
 
-    setIsLoading(true);
+    setIsLoading(true); // ✅ Loading Indicator ON 
 
-    // Simulăm o mică întârziere (1.5s) pentru a păstra efectul de "loading" (UX bun)
-    // Acest lucru face să pară că aplicația "gândește" sau interoghează un server.
-    setTimeout(() => {
-      const locationName = selectedLocation.name;
-      
-      // Căutăm descrierea în fișierul nostru local folosind numele locației ca cheie
-      // @ts-ignore (ignorăm eroarea de tipare strictă pentru cheile obiectului, e safe aici)
-      const vibeText = VIBE_DESCRIPTIONS[locationName] || VIBE_DESCRIPTIONS["DEFAULT"];
+    try {
+        if (typeof generateVibe !== 'function') {
+             // Dacă ai uitat să pui cheia API, se va folosi descrierea inițială
+             throw new Error("AI Service not fully integrated (Missing API key or function).");
+        }
+        
+        const locationName = selectedLocation.name;
+        const originalDescription = selectedLocation.short_description;
 
-      setCurrentDescription(vibeText);
-      setIsVibeGenerated(true); // Ascundem butonul după generare și arătăm titlul nou
-      setIsLoading(false);
-    }, 1500); 
+        // Apel către serviciul extern
+        const newVibe = await generateVibe(locationName, originalDescription);
 
+        setCurrentDescription(newVibe); 
+        setIsVibeGenerated(true); // Ascundem butonul
+    } catch (error) {
+        Alert.alert("Eroare AI", "Nu am putut genera descrierea Vibe. Verifică cheia API și conexiunea la internet.");
+    } finally {
+        setIsLoading(false); // ✅ Loading Indicator OFF
+    }
   }, [selectedLocation, isLoading]);
 
   // 🗺️ Navigare (Google Maps / Apple Maps)
@@ -84,7 +88,7 @@ export default function DetailsScreen() {
     }
   };
 
-  // 📞 Rezervare (WhatsApp)
+  // 📞 Rezervare (WhatsApp) [cite: 27]
   const handleReserve = () => {
     if (!selectedLocation) return;
     const url = `whatsapp://send?text=Salut! Aș vrea să fac o rezervare la ${selectedLocation.name}.`;
@@ -93,11 +97,11 @@ export default function DetailsScreen() {
     });
   };
 
-  // Header Customizat
+  // Header Customizat (Folosit pentru a închide modalul)
   const headerStyle = {
     headerShown: true,
     title: selectedLocation?.name || "Detalii",
-    headerStyle: { backgroundColor: isDark ? COLORS.darkBackground : COLORS.white },
+    headerStyle: { backgroundColor: COLORS.card },
     headerTintColor: COLORS.primary,
     headerShadowVisible: false,
     headerLeft: () => (
@@ -125,28 +129,28 @@ export default function DetailsScreen() {
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <Image
           source={{ uri: selectedLocation.image_url }}
-          style={styles.mainImage}
+          style={[styles.mainImage, {backgroundColor: COLORS.secondary}]}
           resizeMode="cover"
         />
 
-        <View style={styles.contentPadding}>
+        <View style={[styles.contentPadding, {backgroundColor: COLORS.background}]}>
           {/* Titlu și Rating */}
           <View style={styles.titleRow}>
             <Text style={[styles.locationTitle, { color: COLORS.textPrimary }]}>
               {selectedLocation.name}
             </Text>
             <View style={styles.ratingContainer}>
-              <Ionicons name="star" size={20} color="#FFB800" />
-              <Text style={styles.ratingText}>{selectedLocation.rating}</Text>
+              <Ionicons name="star" size={20} color={COLORS.primary} />
+              <Text style={[styles.ratingText, { color: COLORS.primary }]}>{selectedLocation.rating}</Text>
             </View>
           </View>
 
           {/* Adresă */}
-          <Text style={[styles.addressText, { color: COLORS_BASE.textLight }]}>
-            <Ionicons name="location-outline" size={14} color={COLORS_BASE.textLight} /> {selectedLocation.address}
+          <Text style={[styles.addressText, { color: COLORS.textSecondary }]}>
+            <Ionicons name="location-outline" size={14} color={COLORS.textSecondary} /> {selectedLocation.address}
           </Text>
 
-          {/* Descriere (care se va schimba la apăsarea butonului) */}
+          {/* Descriere (Actualizată de AI) */}
           <View style={styles.descriptionSection}>
             <Text style={[styles.descriptionHeader, { color: COLORS.primary }]}>
               {isVibeGenerated ? "✨ Vibe Check (Generat)" : "Descriere"}
@@ -164,6 +168,7 @@ export default function DetailsScreen() {
               disabled={isLoading}
             >
               {isLoading ? (
+                // Loading Indicator
                 <ActivityIndicator size="small" color={COLORS.white} />
               ) : (
                 <>
@@ -179,7 +184,7 @@ export default function DetailsScreen() {
               
               {/* Buton Navigare (Hărți) */}
               <TouchableOpacity
-                style={[styles.actionButton, { borderColor: COLORS.primary, backgroundColor: COLORS.white }]}
+                style={[styles.actionButton, { borderColor: COLORS.primary, backgroundColor: COLORS.card }]}
                 onPress={handleNavigation}
               >
                 <Ionicons name="navigate-circle" size={24} color={COLORS.primary} />
@@ -190,7 +195,7 @@ export default function DetailsScreen() {
 
               {/* Buton Rezervare (WhatsApp) */}
               <TouchableOpacity
-                style={[styles.actionButton, { borderColor: '#25D366', backgroundColor: '#25D366' }]}
+                style={[styles.actionButton, { borderColor: COLORS.success, backgroundColor: COLORS.success }]}
                 onPress={handleReserve}
               >
                 <Ionicons name="logo-whatsapp" size={22} color="white" />
@@ -213,7 +218,6 @@ const styles = StyleSheet.create({
   mainImage: {
     width: "100%",
     height: 280,
-    backgroundColor: COLORS_BASE.secondary,
   },
   contentPadding: {
     paddingHorizontal: 20,
@@ -229,12 +233,11 @@ const styles = StyleSheet.create({
   ratingContainer: {
     flexDirection: "row",
     alignItems: 'center',
-    backgroundColor: "rgba(255,184,0,0.15)",
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 10
   },
-  ratingText: { marginLeft: 4, fontSize: 16, fontWeight: "700", color: "#D49500" },
+  ratingText: { marginLeft: 5, fontWeight: "700" },
   addressText: { fontSize: 15, marginBottom: 25 },
   descriptionSection: { marginBottom: 10 },
   descriptionHeader: { fontSize: 18, fontWeight: "bold", marginBottom: 10 },
@@ -248,13 +251,13 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "center",
     alignItems: "center",
-    shadowColor: COLORS_BASE.primary,
+    shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
     elevation: 5,
   },
-  aiButtonText: { color: COLORS_BASE.white, fontSize: 16, fontWeight: "700" },
+  aiButtonText: { color: 'white', fontSize: 16, fontWeight: "700" },
 
   actionButtonsContainer: {
       flexDirection: 'row',

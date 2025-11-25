@@ -1,87 +1,82 @@
 import { Tabs } from 'expo-router';
-import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
-import { Platform } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useTheme } from '../contexts/ThemeContext'; 
-import AnimatedThemeIcon from '../../components/AnimatedThemeIcon';
+import { useTheme } from '../contexts/ThemeContext';
 
 export default function TabLayout() {
-  const { COLORS, isDark, theme, setTheme } = useTheme();
-  const insets = useSafeAreaInsets();
-
-  const handleThemeToggle = () => {
-    if (theme === 'light') setTheme('dark');
-    else if (theme === 'dark') setTheme('system');
-    else setTheme('light');
-  };
-
-  // ✅ AM MĂRIT ÎNĂLȚIMEA PENTRU A NU TĂIA ICONIȚELE
-  const BASE_TAB_HEIGHT = 90; 
-  const EXTRA_PADDING_BOTTOM = Platform.OS === 'ios' ? 20 : 15;
+  const { COLORS } = useTheme();
 
   return (
     <Tabs
       screenOptions={{
-        tabBarStyle: {
-          backgroundColor: isDark ? COLORS.darkBackground : COLORS.white,
-          borderTopColor: isDark ? COLORS.secondary : COLORS.light,
-          height: BASE_TAB_HEIGHT + insets.bottom,
-          paddingBottom: insets.bottom + EXTRA_PADDING_BOTTOM,
-          paddingTop: 15, // Spațiu mai mare sus
-          elevation: 0,
-          borderTopWidth: 1, 
-        },
-        tabBarInactiveTintColor: COLORS.textLight,
+        headerShown: false,
+        
         tabBarActiveTintColor: COLORS.primary, 
-        headerShown: false, 
+        tabBarInactiveTintColor: COLORS.textSecondary,
+        
+        tabBarStyle: {
+          backgroundColor: COLORS.card, 
+          borderTopWidth: 0,
+          elevation: 5,
+          shadowColor: '#000',
+          shadowOffset: { width: 0, height: -2 },
+          shadowOpacity: 0.1,
+          shadowRadius: 4,
+          height: 90,
+          paddingBottom: 15,
+          paddingTop: 5,
+        },
         tabBarLabelStyle: {
-            fontSize: 11, 
-            fontWeight: '600',
-            marginTop: 5,
-        }
+          fontWeight: 'bold',
+          fontSize: 12,
+        },
       }}
     >
-      {/* 1. HOME */}
+      {/* 1. HOME (EXPLORE) */}
       <Tabs.Screen
         name="home"
         options={{
-          title: 'Acasă',
-          tabBarIcon: ({ color, focused }) => <Ionicons name={focused ? "home" : "home-outline"} size={26} color={color} />,
+          title: 'Explore',
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="compass-outline" size={size} color={color} />
+          ),
+          // unmountOnBlur a fost eliminat pentru a rezolva eroarea 2322
         }}
       />
 
-      {/* 2. HARTĂ (index.tsx) */}
+      {/* 2. LISTA (FEED) */}
+      <Tabs.Screen
+        name="list"
+        options={{
+          title: 'Listă',
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="list" size={size} color={color} />
+          ),
+          // unmountOnBlur a fost eliminat
+        }}
+      />
+      
+      {/* 3. HARTA (MAP) */}
       <Tabs.Screen
         name="index"
         options={{
           title: 'Hartă',
-          tabBarIcon: ({ color, focused }) => <Ionicons name={focused ? "map" : "map-outline"} size={26} color={color} />,
-        }}
-      />
-      
-      {/* 3. MATCH (Tinder Style) */}
-      <Tabs.Screen
-        name="MatchScreen" 
-        options={{
-          title: 'Match',
-          // ✅ Iconiță mărită și vizibilă
-          tabBarIcon: ({ color, focused }) => (
-            <MaterialCommunityIcons 
-                name={focused ? "fire" : "fire-off"} 
-                size={32} // Puțin mai mare
-                color={focused ? "#E91E63" : color} 
-            />
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="map-outline" size={size} color={color} />
           ),
+          // unmountOnBlur a fost eliminat
         }}
       />
 
-      {/* 4. LISTĂ */}
+      {/* 4. VIBE MATCH */}
       <Tabs.Screen
-        name="list"
+        name="MatchScreen"
         options={{
-          title: 'Locații',
-          tabBarIcon: ({ color, focused }) => <Ionicons name={focused ? "list" : "list-outline"} size={28} color={color} />,
+          title: 'Vibe',
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="heart-outline" size={size} color={color} />
+          ),
+          // unmountOnBlur a fost eliminat
         }}
       />
 
@@ -90,28 +85,12 @@ export default function TabLayout() {
         name="profile"
         options={{
           title: 'Profil',
-          tabBarIcon: ({ color, focused }) => <Ionicons name={focused ? "person" : "person-outline"} size={26} color={color} />,
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="person-outline" size={size} color={color} />
+          ),
+          // unmountOnBlur a fost eliminat
         }}
       />
-      
-      {/* 6. TEMĂ (Buton) */}
-      <Tabs.Screen
-        name="toggle-theme" 
-        options={{
-          title: 'Temă',
-          tabBarIcon: ({ color }) => <AnimatedThemeIcon color={color} size={26} />,
-        }}
-        listeners={() => ({
-          tabPress: (e) => {
-            e.preventDefault();
-            handleThemeToggle();
-          },
-        })}
-      />
-
-      {/* Rute Ascunse */}
-      <Tabs.Screen name="explore" options={{ href: null }} />
-      <Tabs.Screen name="theme-settings" options={{ href: null }} />
     </Tabs>
   );
 }

@@ -1,66 +1,118 @@
-import React, { createContext, useState, useContext, ReactNode, useMemo } from 'react';
+import React, { createContext, useState, useContext, ReactNode, useEffect } from 'react';
 import { useColorScheme } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
-type ThemeMode = 'light' | 'dark' | 'system';
-
-export const COLORS_BASE = {
-  primary: '#8B5A3C', // Maro închis
-  secondary: '#C4956C', // Maro deschis/Bej
-  light: '#F5E6D3', // Fundal Light Mode
-  accent: '#88B5C5', // Albastru
+// 🎨 PALETA DE CULORI CENTRALIZATĂ (Coffee & Travel Vibe)
+export const COLORS_PALETTE = {
+  // Culori principale din imagine
+  darkBrown: '#4A3B32',   // Maro închis (Text, Titluri, Elemente tari)
+  caramel: '#C08552',     // Caramel/Bronz (Brand Color, Butoane, Iconițe active)
+  cream: '#FDF5E6',       // Crem deschis / "Old Lace" (Fundal Light Mode)
+  blue: '#90C8D6',        // Bleu (Accente, Link-uri, Nice to Have)
+  
+  // Culori utilitare
   white: '#FFFFFF',
-  text: '#2C2C2C', // Text Light Mode
-  textDark: '#F5F5F5', // Text Dark Mode
-  textLight: '#6B6B6B', // Text secundar
-  darkBackground: '#1E1E1E', // Fundal Dark Mode
+  black: '#1A1A1A',
+  darkGray: '#333333',
+  lightGray: '#E0E0E0',
+  error: '#FF5252',
+  success: '#4CAF50',
 };
 
+// Maparea culorilor pe teme (Light vs Dark)
+export const COLORS_BASE = {
+  light: {
+    primary: COLORS_PALETTE.caramel,
+    secondary: COLORS_PALETTE.blue,
+    background: COLORS_PALETTE.cream,
+    card: COLORS_PALETTE.white,
+    textPrimary: COLORS_PALETTE.darkBrown,
+    textSecondary: '#8D6E63',
+    textLight: '#A1887F',
+    border: '#D7CCC8',
+    white: COLORS_PALETTE.white,
+    error: COLORS_PALETTE.error,
+    success: COLORS_PALETTE.success,
+    
+    tabBarActive: COLORS_PALETTE.caramel,
+    tabBarInactive: '#A1887F',
+  },
+  dark: {
+    primary: COLORS_PALETTE.caramel,
+    // FIX: Secondary (Blue) mai vizibil
+    secondary: '#B3E5FC',                 
+    // FIX: Fundal foarte închis (nu negru, dar aproape)
+    background: '#121212',            
+    // FIX: Card (elemente plutitoare) gri mediu/închis pentru contrast maxim
+    card: '#222222',                  
+    textPrimary: COLORS_PALETTE.white, // Text alb pur
+    textSecondary: '#BBBBBB',          // Text gri deschis
+    textLight: '#666666',              // Text mai șters
+    border: '#333333',
+    white: COLORS_PALETTE.white,
+    error: '#FF8A80',
+    success: '#81C784',
+
+    tabBarActive: COLORS_PALETTE.caramel,
+    tabBarInactive: '#A1A1A1', // Iconițe inactive mai vizibile
+  }
+};
+
+type ThemeType = 'light' | 'dark' | 'system';
+
 interface ThemeContextType {
-  theme: ThemeMode;
+  theme: ThemeType;
   isDark: boolean;
-  setTheme: (mode: ThemeMode) => void;
-  COLORS: typeof COLORS_BASE & {
-    background: string;
-    textPrimary: string;
-  };
+  COLORS: typeof COLORS_BASE.light;
+  setTheme: (theme: ThemeType) => void;
 }
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
-interface ThemeProviderProps {
-  children: ReactNode;
-}
-
-export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
+export const ThemeProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const systemScheme = useColorScheme();
-  const [userTheme, setUserTheme] = useState<ThemeMode>('system');
+  const [theme, setThemeState] = useState<ThemeType>('system');
+  const [isReady, setIsReady] = useState(false);
 
-  const resolvedTheme = useMemo(() => {
-    return userTheme === 'system' ? (systemScheme || 'light') : userTheme;
-  }, [userTheme, systemScheme]);
-
-  const isDark = resolvedTheme === 'dark';
-
-  const contextValue = useMemo(() => {
-    const background = isDark ? COLORS_BASE.darkBackground : COLORS_BASE.light;
-    const textPrimary = isDark ? COLORS_BASE.textDark : COLORS_BASE.text;
-
-    const COLORS_THEMED = {
-      ...COLORS_BASE,
-      background,
-      textPrimary,
+  // 1. Încărcăm tema salvată la pornire
+  useEffect(() => {
+    const loadTheme = async () => {
+      try {
+        const savedTheme = await AsyncStorage.getItem('app_theme');
+        if (savedTheme) {
+          setThemeState(savedTheme as ThemeType);
+        }
+      } catch (e) {
+        console.log('Eroare la încărcarea temei:', e);
+      } finally {
+        setIsReady(true);
+      }
     };
+    loadTheme();
+  }, []);
 
-    return {
-      theme: userTheme,
-      isDark,
-      setTheme: setUserTheme,
-      COLORS: COLORS_THEMED,
-    };
-  }, [userTheme, isDark]);
+  // 2. Funcție pentru salvarea și schimbarea temei
+  const setTheme = async (newTheme: ThemeType) => {
+    setThemeState(newTheme);
+    try {
+      await AsyncStorage.setItem('app_theme', newTheme);
+    } catch (e) {
+      console.log('Eroare la salvarea temei:', e);
+    }
+  };
+
+  // Calculăm dacă e Dark Mode efectiv
+  const isDark = theme === 'system' ? systemScheme === 'dark' : theme === 'dark';
+  
+  // Alegem setul de culori potrivit
+  const COLORS = isDark ? COLORS_BASE.dark : COLORS_BASE.light;
+
+  if (!isReady) {
+    return null; // Sau un LoadingScreen simplu
+  }
 
   return (
-    <ThemeContext.Provider value={contextValue}>
+    <ThemeContext.Provider value={{ theme, isDark, COLORS, setTheme }}>
       {children}
     </ThemeContext.Provider>
   );

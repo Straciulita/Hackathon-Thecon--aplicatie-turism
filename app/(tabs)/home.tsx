@@ -10,14 +10,14 @@ import {
   StyleSheet,
   Text,
   TouchableOpacity,
-  View,
-  ActivityIndicator
+  View
 } from 'react-native';
 
 import { auth } from '../firebaseConfig'; 
 import { useTheme } from '../contexts/ThemeContext';
-// ✅ IMPORTĂM COMPONENTA NOUĂ (Verifică calea dacă ai pus-o altundeva)
+
 import FunFactCard from '../components/FunFactCard'; 
+import WeatherWidget from '../components/WeatherWidget';
 
 const WEATHER_API_KEY = "a9b72c6e273c9a565a6c71574ef3d4db";
 
@@ -79,11 +79,11 @@ export default function HomeScreen() {
 
   // === 3. LOGICA RECOMANDARE ===
   const getSmartRecommendation = () => {
+    // Default
     let rec = {
         drink: "Cappuccino Clasic",
         desc: "O zi echilibrată cere o cafea pe măsură. Perfect pentru Faleză! ☕",
         icon: "cafe",
-        color: "#8B5A3C",
         image: "https://images.unsplash.com/photo-1572442388796-11668a67e53d"
     };
 
@@ -91,12 +91,11 @@ export default function HomeScreen() {
         const temp = weather.temp;
         const cond = (weather.condition || "").toLowerCase();
         
-        if (cond.includes('rain') || cond.includes('drizzle') || cond.includes('thunder')) {
+        if (cond.includes('rain') || cond.includes('drizzle')) {
             return {
                 drink: "Comfort Tea & Carte",
                 desc: "Plouă la Galați? Stai la căldură cu un ceai aromat. 🌧️📖",
                 icon: "umbrella",
-                color: "#455A64",
                 image: "https://images.unsplash.com/photo-1544787219-7f47ccb76574"
             };
         }
@@ -105,7 +104,6 @@ export default function HomeScreen() {
                 drink: "Iced Caramel Latte",
                 desc: `E cald (${temp}°C)! Răcorește-te cu ceva rece și dulce. 🧊☀️`,
                 icon: "sunny",
-                color: "#F39C12",
                 image: "https://images.unsplash.com/photo-1517701604599-bb29b5c7fa69"
             };
         } 
@@ -114,7 +112,6 @@ export default function HomeScreen() {
                 drink: "Vin Fiert",
                 desc: `Brrr, ${temp}°C. Un vin fiert pe Domnească e tot ce trebuie. 🍷❄️`,
                 icon: "snow",
-                color: "#C2185B",
                 image: "https://images.unsplash.com/photo-1510041084273-6b7244b09757"
             };
         }
@@ -123,7 +120,6 @@ export default function HomeScreen() {
                 drink: "Espresso Tonic",
                 desc: "Soare pe cer? Încearcă ceva fresh. Vibe perfect de oraș. ✨",
                 icon: "glasses",
-                color: "#E67E22", 
                 image: "https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd"
             };
         }
@@ -157,19 +153,12 @@ export default function HomeScreen() {
     fetchWeather().then(() => setRefreshing(false));
   };
 
-  const getWeatherIcon = (condition: string) => {
-    if (!condition) return "partly-sunny";
-    const c = condition.toLowerCase();
-    if (c.includes("rain")) return "rainy";
-    if (c.includes("cloud")) return "cloud";
-    if (c.includes("clear")) return "sunny";
-    if (c.includes("snow")) return "snow";
-    return "partly-sunny";
-  };
-
   const displayName = user?.displayName 
     ? user.displayName.split(' ')[0] 
     : user?.email?.split('@')[0] || "User";
+
+  // ✅ Culoarea fixă cerută (Bleu din paletă)
+  const CARD_COLOR = COLORS.secondary; 
 
   return (
     <View style={[styles.container, { backgroundColor: COLORS.background }]}>
@@ -194,30 +183,12 @@ export default function HomeScreen() {
             </TouchableOpacity>
         </View>
 
-        {/* CARD VREME */}
-        <View style={[styles.weatherCard, { backgroundColor: isDark ? COLORS.darkBackground : 'white' }]}>
-            <View>
-                {loading && !weather ? (
-                   <ActivityIndicator size="small" color={COLORS.primary} />
-                ) : (
-                  <>
-                    <View style={{flexDirection: 'row', alignItems: 'center', marginBottom: 5}}>
-                      <Ionicons name="location-sharp" size={18} color={COLORS.primary} style={{marginRight: 4}} />
-                      <Text style={[styles.weatherCity, { color: COLORS.textPrimary }]}>
-                        {weather?.city}
-                      </Text>
-                    </View>
-                    <Text style={styles.weatherTemp}>{weather?.temp}°C</Text>
-                    <Text style={styles.weatherDesc}>{weather?.condition || "Loading..."}</Text>
-                  </>
-                )}
-            </View>
-            <Ionicons name={getWeatherIcon(weather?.condition)} size={60} color="#FFD700" />
-        </View>
+        {/* WIDGET VREME */}
+        <WeatherWidget weather={weather} loading={loading} />
 
-        {/* RECOMANDARE */}
+        {/* RECOMANDARE - ACUM PE ALBASTRU */}
         <Text style={[styles.sectionTitle, { color: COLORS.textPrimary }]}>Recomandarea Zilei ✨</Text>
-        <Animated.View style={[styles.promoCard, { backgroundColor: rec.color, opacity: cardOpacity, transform: [{ translateY: cardTranslateY }] }]}>
+        <Animated.View style={[styles.promoCard, { backgroundColor: CARD_COLOR, opacity: cardOpacity, transform: [{ translateY: cardTranslateY }] }]}>
             <View style={styles.promoContent}>
                 <View style={styles.promoBadge}>
                     <Ionicons name={rec.icon as any} size={16} color="white" />
@@ -226,8 +197,9 @@ export default function HomeScreen() {
                 <Text style={styles.promoTitle}>{rec.drink}</Text>
                 <Text style={styles.promoDesc}>{rec.desc}</Text>
                 <TouchableOpacity style={styles.promoBtn} onPress={() => router.push('/(tabs)/list')}>
-                    <Text style={[styles.promoBtnText, { color: rec.color }]}>Găsește acum</Text>
-                    <Ionicons name="arrow-forward" size={16} color={rec.color} />
+                    {/* Iconita din buton este acum tot culoarea cardului pentru contrast */}
+                    <Text style={[styles.promoBtnText, { color: CARD_COLOR }]}>Găsește acum</Text>
+                    <Ionicons name="arrow-forward" size={16} color={CARD_COLOR} />
                 </TouchableOpacity>
             </View>
             <Animated.View style={[styles.promoImageWrapper, { transform: [{ translateY: floatAnim }] }]}>
@@ -238,21 +210,21 @@ export default function HomeScreen() {
         {/* QUICK ACTIONS */}
         <Text style={[styles.sectionTitle, { color: COLORS.textPrimary }]}>Ce vrei să faci azi?</Text>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ paddingLeft: 20, paddingBottom: 10 }}>
-             <TouchableOpacity style={[styles.actionCard, { backgroundColor: isDark ? COLORS.darkBackground : 'white' }]} onPress={() => router.push('/')}>
+             <TouchableOpacity style={[styles.actionCard, { backgroundColor: COLORS.card }]} onPress={() => router.push('/')}>
                 <View style={{backgroundColor: '#E3F2FD', padding: 15, borderRadius: 50, marginBottom: 10}}>
                     <Ionicons name="map" size={30} color="#2196F3" />
                 </View>
                 <Text style={[styles.actionText, { color: COLORS.textPrimary }]}>Vezi Harta</Text>
              </TouchableOpacity>
 
-             <TouchableOpacity style={[styles.actionCard, { backgroundColor: isDark ? COLORS.darkBackground : 'white' }]} onPress={() => router.push('/(tabs)/list')}>
+             <TouchableOpacity style={[styles.actionCard, { backgroundColor: COLORS.card }]} onPress={() => router.push('/(tabs)/list')}>
                 <View style={{backgroundColor: '#F3E5F5', padding: 15, borderRadius: 50, marginBottom: 10}}>
                     <Ionicons name="list" size={30} color="#9C27B0" />
                 </View>
                 <Text style={[styles.actionText, { color: COLORS.textPrimary }]}>Vezi Lista</Text>
              </TouchableOpacity>
 
-             <TouchableOpacity style={[styles.actionCard, { backgroundColor: isDark ? COLORS.darkBackground : 'white' }]} onPress={() => router.push('/(tabs)/MatchScreen')}>
+             <TouchableOpacity style={[styles.actionCard, { backgroundColor: COLORS.card }]} onPress={() => router.push('/(tabs)/MatchScreen')}>
                 <View style={{backgroundColor: '#FFEBEE', padding: 15, borderRadius: 50, marginBottom: 10}}>
                     <Ionicons name="heart" size={30} color="#E91E63" />
                 </View>
@@ -260,8 +232,7 @@ export default function HomeScreen() {
              </TouchableOpacity>
         </ScrollView>
 
-        {/* ✅ AICI ESTE COMPONENTA SEPARATĂ */}
-        {/* Îi trimitem 'refreshing' ca să știe când să schimbe mesajul */}
+        {/* FUN FACTS */}
         <FunFactCard refreshTrigger={refreshing} />
 
       </ScrollView>
@@ -276,10 +247,6 @@ const styles = StyleSheet.create({
   username: { fontSize: 20, fontWeight: 'bold', flexWrap: 'wrap', maxWidth: '80%' },
   profileBtn: { shadowColor: "#000", shadowOpacity: 0.1, shadowRadius: 5, elevation: 3 },
   avatarSmall: { width: 50, height: 50, borderRadius: 25, borderWidth: 2, borderColor: 'white' },
-  weatherCard: { marginHorizontal: 25, borderRadius: 20, padding: 20, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 25, elevation: 3 },
-  weatherCity: { fontSize: 18, fontWeight: 'bold' },
-  weatherTemp: { fontSize: 36, fontWeight: '900', color: '#FFA500' },
-  weatherDesc: { fontSize: 14, color: '#888', textTransform: 'capitalize' },
   sectionTitle: { fontSize: 20, fontWeight: 'bold', marginLeft: 25, marginBottom: 15 },
   
   promoCard: { marginHorizontal: 25, borderRadius: 25, height: 220, padding: 20, flexDirection: 'row', overflow: 'hidden', marginBottom: 30, elevation: 8 },

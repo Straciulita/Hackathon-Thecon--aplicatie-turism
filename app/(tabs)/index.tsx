@@ -1,21 +1,23 @@
 import React from 'react';
-import { View, StyleSheet, TextInput, Image, ActivityIndicator, Platform, StatusBar } from 'react-native';
+import { View, StyleSheet, Image, ActivityIndicator } from 'react-native';
 import MapView, { Marker, MapUrlTile } from 'react-native-maps'; 
-import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { useSafeAreaInsets } from 'react-native-safe-area-context'; // Import pentru Safe Area
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { useTheme, COLORS_BASE } from '../contexts/ThemeContext'; 
+import { useTheme } from '../contexts/ThemeContext'; 
 import { useLocations } from '../contexts/LocationContext'; 
 
+// ✅ IMPORT NOU
+import SearchBar from '../components/SearchBar';
+
 // Asigură-te că imaginea există la această cale
-const customCoffeePinImage = require('../../assets/images/coffee_pin.png');
+const customCoffeePinImage = require('../../assets/images/coffee_pin.png'); // S-ar putea să fie '../assets/images/coffee_pin.png' depinzând de structură
 
 export default function MapScreen() {
   const { isDark, COLORS } = useTheme();
-  const { filteredLocations, loading, searchText, setSearchText } = useLocations();
+  const { filteredLocations, loading, setSearchText } = useLocations();
   const router = useRouter();
-  const insets = useSafeAreaInsets();
+  const insets = useSafeAreaInsets(); // Rămâne aici pentru că e folosit de map
 
   const handleLocationPress = (location: any) => {
     router.push({
@@ -53,30 +55,9 @@ export default function MapScreen() {
   return (
     <View style={[styles.container, { backgroundColor: COLORS.background }]}>
       
-      {/* BARA DE CĂUTARE */}
-      <View style={[
-        styles.searchContainer, 
-        { 
-          backgroundColor: isDark ? COLORS.darkBackground : COLORS.white,
-          borderBottomColor: isDark ? '#333' : '#eee',
-          paddingTop: insets.top + 10, // Spațiere corectă sus
-        }
-      ]}>
-        <Ionicons name="search" size={20} color={COLORS.textLight} style={styles.searchIcon} />
-        <TextInput
-          style={[
-            styles.searchInput, 
-            { 
-              color: COLORS.textPrimary, 
-              backgroundColor: isDark ? '#2C2C2C' : '#F0F0F0' 
-            }
-          ]}
-          placeholder="Caută pe hartă..."
-          placeholderTextColor={COLORS.textLight}
-          value={searchText}
-          onChangeText={setSearchText}
-        />
-      </View>
+      {/* ✅ COMPONENTA SEARCH BAR REUTILIZABILĂ */}
+      {/* isMapMode={true} asigură spațierea corectă în Safe Area de sus */}
+      <SearchBar isMapMode={true} />
 
       {/* HARTA */}
       <MapView
@@ -84,30 +65,25 @@ export default function MapScreen() {
         provider={undefined}
         initialRegion={initialRegion}
         mapType="standard"
-        // Optimizări pentru a preveni dispariția
         moveOnMarkerPress={false}
       >
         <MapUrlTile urlTemplate={mapTileUrl} maximumZ={16} tileSize={256} />
 
         {filteredLocations.map((location) => (
           <Marker
-            key={location.id} // Cheia unică este critică
+            key={location.id}
             coordinate={{
               latitude: location.coordinates.lat,
               longitude: location.coordinates.long,
             }}
             onPress={() => handleLocationPress(location)}
-            // Ancorăm imaginea cu vârful jos (0.5 orizontal, 1.0 vertical)
             anchor={{ x: 0.5, y: 1.0 }}
-            // Această proprietate forțează randarea continuă, rezolvând problema dispariției pe Android
-            tracksViewChanges={true} 
+            tracksViewChanges={false}
           >
-            {/* Imaginea Pin-ului SIMPLIFICATĂ */}
             <Image
               source={customCoffeePinImage}
               style={styles.markerImage}
               resizeMode="contain" 
-              // onLoadEnd poate ajuta la debugging, dar lăsăm simplu pentru stabilitate
             />
           </Marker>
         ))}
@@ -119,35 +95,11 @@ export default function MapScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1 },
   loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  
-  searchContainer: {
-    // paddingTop se setează dinamic în componentă
-    paddingBottom: 12,
-    paddingHorizontal: 16,
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderBottomWidth: 1,
-    zIndex: 10,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 3.84,
-    elevation: 5,
-  },
-  searchIcon: { marginRight: 10 },
-  searchInput: {
-    flex: 1,
-    height: 45,
-    borderRadius: 10,
-    paddingHorizontal: 15,
-    fontSize: 16,
-  },
+  // Am scos searchContainer și searchInput styles de aici
   map: { flex: 1 },
   
-  // STILURI PIN: Dimensiuni fixe, fără containere suplimentare
   markerImage: {
     width: 45, 
     height: 40,
-    // Nu adăuga backgroundColor aici pentru a păstra transparența PNG-ului
   },
 });

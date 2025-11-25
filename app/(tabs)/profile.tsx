@@ -13,7 +13,7 @@ import {
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import { signOut } from 'firebase/auth';
-import AsyncStorage from '@react-native-async-storage/async-storage'; // ✅ IMPORT NOU
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import { auth } from '../firebaseConfig';
 import { useTheme } from '../contexts/ThemeContext';
@@ -30,13 +30,12 @@ export default function ProfileScreen() {
   const [favColor, setFavColor] = useState('#8B5A3C');
   
   const [isEditing, setIsEditing] = useState(false);
-  const [isLoadingData, setIsLoadingData] = useState(true); // ✅ Loading state pentru date
+  const [isLoadingData, setIsLoadingData] = useState(true);
 
   const PROFILE_COLORS = [
     '#8B5A3C', '#2E8B57', '#1E90FF', '#E91E63', '#FF9800', '#607D8B',
   ];
-
-  // Cheile pentru salvare (unice per user, dacă e posibil, dar simplu acum)
+  
   const STORAGE_KEYS = {
     NAME: `user_name_${user?.uid}`,
     BIO: `user_bio_${user?.uid}`,
@@ -45,7 +44,7 @@ export default function ProfileScreen() {
     COLOR: `user_color_${user?.uid}`,
   };
 
-  // ✅ 1. ÎNCĂRCARE DATE LA PORNIRE
+  // ✅ 1. ÎNCĂRCARE DATE
   useEffect(() => {
     const loadProfileData = async () => {
       try {
@@ -103,7 +102,7 @@ export default function ProfileScreen() {
     }
   };
 
-  // 🔑 LOGOUT (Fără redirect manual, lăsăm layout-ul să se ocupe)
+  // 🔑 LOGOUT (Fără redirect manual)
   const handleLogout = async () => {
     try {
       await signOut(auth);
@@ -114,7 +113,6 @@ export default function ProfileScreen() {
 
   const toggleEdit = async () => {
     if (isEditing) {
-      // Dacă tocmai am terminat editarea -> SALVĂM
       await saveProfileData();
       Alert.alert("Salvat", "Profilul tău a fost actualizat!");
     }
@@ -126,15 +124,24 @@ export default function ProfileScreen() {
     setDrinkPref(prev => prev === 'coffee' ? 'tea' : 'coffee');
   };
 
+  // ✅ FUNCȚIE CORECTATĂ PENTRU ASPECT ȘI FUNCȚIONALITATE TEMATICĂ
   const renderThemeOption = (mode: 'light' | 'dark' | 'system', icon: string, label: string) => {
     const isActive = theme === mode;
+    
+    // Culoarea fundalului inactiv: Cardul (Alb/Gri închis)
+    const inactiveBg = COLORS.card;
+    // Culoarea textului inactiv: Textul principal (Maro închis/Alb)
+    const inactiveText = COLORS.textPrimary;
+    
     return (
       <TouchableOpacity 
         style={[
           styles.themeButton, 
           { 
-            backgroundColor: isActive ? COLORS.primary : (isDark ? '#444' : '#EEE'),
-            borderColor: isActive ? COLORS.primary : 'transparent'
+            // Fundal: Primar (Activ) sau Card (Inactiv)
+            backgroundColor: isActive ? COLORS.primary : inactiveBg, 
+            // Bordură: Primar (Activ) sau Text Secondary (Inactiv)
+            borderColor: isActive ? COLORS.primary : COLORS.border
           }
         ]}
         onPress={() => setTheme(mode)}
@@ -142,11 +149,12 @@ export default function ProfileScreen() {
         <Ionicons 
           name={icon as any} 
           size={20} 
-          color={isActive ? '#FFF' : (isDark ? '#DDD' : '#555')} 
+          // Culoare icon: Alb (Activ) sau Text Primar (Inactiv)
+          color={isActive ? COLORS.white : inactiveText} 
         />
         <Text style={[
           styles.themeButtonText, 
-          { color: isActive ? '#FFF' : (isDark ? '#DDD' : '#555') }
+          { color: isActive ? COLORS.white : inactiveText }
         ]}>
           {label}
         </Text>
@@ -188,7 +196,7 @@ export default function ProfileScreen() {
 
             {/* Buton Editare / Salvare */}
             <TouchableOpacity 
-              style={[styles.editMainBtn, { backgroundColor: isEditing ? '#4CAF50' : favColor }]} 
+              style={[styles.editMainBtn, { backgroundColor: isEditing ? COLORS.success : favColor }]} 
               onPress={toggleEdit}
             >
               <Ionicons name={isEditing ? "checkmark" : "pencil"} size={18} color="white" />
@@ -199,7 +207,7 @@ export default function ProfileScreen() {
 
             {/* Selector Culoare (Doar în Edit Mode) */}
             {isEditing && (
-              <View style={styles.colorPickerContainer}>
+              <View style={[styles.colorPickerContainer, {backgroundColor: COLORS.card}]}>
                 <Text style={[styles.sectionHeader, { color: COLORS.textPrimary, fontSize: 14, marginBottom: 8 }]}>
                   Alege culoarea profilului:
                 </Text>
@@ -227,8 +235,11 @@ export default function ProfileScreen() {
                   style={[
                     styles.drinkCard, 
                     { 
-                      backgroundColor: drinkPref === 'coffee' ? favColor : (isDark ? '#333' : '#8BC34A'),
-                      opacity: isEditing ? 1 : 0.9 
+                      backgroundColor: drinkPref === 'coffee' ? favColor : COLORS.card,
+                      opacity: isEditing ? 1 : 0.9,
+                      // Culoarea borderului de contrast în dark mode
+                      borderWidth: isDark && drinkPref !== 'coffee' ? 1 : 0, 
+                      borderColor: COLORS.border
                     }
                   ]}
                   onPress={toggleDrinkPref}
@@ -237,14 +248,15 @@ export default function ProfileScreen() {
                   <MaterialCommunityIcons 
                       name={drinkPref === 'coffee' ? "coffee" : "tea"} 
                       size={32} 
-                      color="#FFF" 
+                      // Textul/Iconița are nevoie de culoare vizibilă pe fundalul ales
+                      color={drinkPref === 'coffee' ? "#FFF" : COLORS.textPrimary} 
                   />
-                  <Text style={styles.drinkText}>
+                  <Text style={[styles.drinkText, {color: drinkPref === 'coffee' ? "#FFF" : COLORS.textPrimary}]}>
                       {drinkPref === 'coffee' ? "Team Coffee Lover ☕" : "Team Tea Lover 🍵"}
                   </Text>
                   
                   {isEditing && (
-                    <View style={styles.editBadge}>
+                    <View style={[styles.editBadge, {backgroundColor: COLORS.white}]}>
                       <Ionicons name="swap-horizontal" size={12} color={favColor} />
                     </View>
                   )}
@@ -259,7 +271,7 @@ export default function ProfileScreen() {
                       styles.input, 
                       { 
                         color: COLORS.textPrimary, 
-                        backgroundColor: isDark ? '#333' : '#FFF',
+                        backgroundColor: COLORS.card,
                         borderColor: isEditing ? favColor : 'transparent',
                         borderWidth: isEditing ? 1 : 0
                       }
@@ -277,7 +289,7 @@ export default function ProfileScreen() {
                         height: 80, 
                         textAlignVertical: 'top',
                         color: COLORS.textPrimary, 
-                        backgroundColor: isDark ? '#333' : '#FFF',
+                        backgroundColor: COLORS.card,
                         borderColor: isEditing ? favColor : 'transparent',
                         borderWidth: isEditing ? 1 : 0
                       }
@@ -300,12 +312,12 @@ export default function ProfileScreen() {
             </View>
 
             {/* Statistici */}
-            <View style={[styles.statsRow, { backgroundColor: isDark ? '#333' : '#FFF' }]}>
+            <View style={[styles.statsRow, { backgroundColor: COLORS.card }]}>
                 <View style={styles.statBadge}>
                     <Text style={[styles.statNumber, { color: favColor }]}>12</Text>
                     <Text style={styles.statLabel}>Locuri</Text>
                 </View>
-                <View style={[styles.statBadge, { borderLeftWidth: 1, borderRightWidth: 1, borderColor: isDark ? '#555' : '#eee' }]}>
+                <View style={[styles.statBadge, { borderLeftWidth: 1, borderRightWidth: 1, borderColor: COLORS.border }]}>
                     <Text style={[styles.statNumber, { color: favColor }]}>5</Text>
                     <Text style={styles.statLabel}>Recenzii</Text>
                 </View>
@@ -370,16 +382,25 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     marginTop: 5,
   },
-  editMainBtnText: { color: 'white', fontWeight: 'bold', marginLeft: 5 },
-  emailText: { fontSize: 14, marginBottom: 15 },
+  editMainBtnText: {
+    color: 'white',
+    fontWeight: 'bold',
+    marginLeft: 5,
+  },
+  emailText: {
+    fontSize: 14,
+    marginBottom: 15,
+  },
   colorPickerContainer: {
     width: '100%',
     marginBottom: 20,
     padding: 10,
-    backgroundColor: 'rgba(0,0,0,0.03)',
     borderRadius: 15,
   },
-  colorRow: { flexDirection: 'row', justifyContent: 'space-around' },
+  colorRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+  },
   colorCircle: {
     width: 35,
     height: 35,
@@ -408,15 +429,21 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     position: 'relative',
   },
-  drinkText: { color: '#FFF', fontWeight: 'bold', fontSize: 18, marginLeft: 10 },
+  drinkText: {
+    fontWeight: 'bold',
+    fontSize: 18,
+    marginLeft: 10,
+  },
   editBadge: {
     position: 'absolute',
     right: 15,
-    backgroundColor: '#FFF',
     padding: 4,
     borderRadius: 10,
   },
-  formSection: { width: '100%', marginBottom: 20 },
+  formSection: {
+    width: '100%',
+    marginBottom: 20,
+  },
   label: {
     fontSize: 14,
     marginBottom: 6,
@@ -424,10 +451,26 @@ const styles = StyleSheet.create({
     marginLeft: 5,
     marginTop: 10,
   },
-  input: { borderRadius: 15, padding: 15, fontSize: 16 },
-  sectionContainer: { width: '100%', marginBottom: 25 },
-  sectionHeader: { fontSize: 18, fontWeight: 'bold', marginBottom: 10, marginLeft: 5 },
-  themeRow: { flexDirection: 'row', justifyContent: 'space-between', gap: 10 },
+  input: {
+    borderRadius: 15,
+    padding: 15,
+    fontSize: 16,
+  },
+  sectionContainer: {
+    width: '100%',
+    marginBottom: 25,
+  },
+  sectionHeader: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 10,
+    marginLeft: 5,
+  },
+  themeRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    gap: 10,
+  },
   themeButton: {
     flex: 1,
     flexDirection: 'row',
@@ -437,7 +480,11 @@ const styles = StyleSheet.create({
     borderRadius: 15,
     borderWidth: 1,
   },
-  themeButtonText: { marginLeft: 8, fontWeight: '600', fontSize: 14 },
+  themeButtonText: {
+    marginLeft: 8,
+    fontWeight: '600',
+    fontSize: 14,
+  },
   statsRow: {
     flexDirection: 'row',
     width: '100%',
@@ -449,7 +496,16 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.05,
     shadowOffset: {width: 0, height: 4},
   },
-  statBadge: { alignItems: 'center', flex: 1 },
-  statNumber: { fontWeight: 'bold', fontSize: 18 },
-  statLabel: { fontSize: 12, color: '#999' },
+  statBadge: {
+    alignItems: 'center',
+    flex: 1,
+  },
+  statNumber: {
+    fontWeight: 'bold',
+    fontSize: 18,
+  },
+  statLabel: {
+    fontSize: 12,
+    color: '#999',
+  },
 });
